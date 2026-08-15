@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NOT · Gestión</title>
+<meta name="theme-color" content="#ed3d86">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NOT">
+<style>
+:root{--pink:#ed3d86;--yellow:#ffd52e;--sky:#70d7ee;--bg:#f7f7f8;--ink:#28232a;--muted:#77717a;--line:#e7e1e6}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+header{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);padding:8px 14px;display:flex;align-items:center;gap:10px}
+.logo{width:100px;height:48px;object-fit:contain}.brand{font-weight:900;font-size:19px}.muted,small{color:var(--muted)}
+main{max-width:1050px;margin:auto;padding:12px 12px 90px}.page{display:none}.page.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.stat,.card{background:#fff;border:1px solid var(--line);border-radius:17px;padding:14px;margin:9px 0}.stat strong{display:block;font-size:22px;margin-top:3px}
+h2{font-size:19px;margin:0 0 4px}h3{font-size:15px;margin:16px 0 8px}.row{display:flex;justify-content:space-between;align-items:center;gap:9px}.actions{display:flex;gap:7px;flex-wrap:wrap}
+button{border:0;border-radius:11px;padding:10px 13px;background:var(--pink);color:white;font-weight:800;cursor:pointer}.yellow{background:var(--yellow);color:#463800}.sky{background:var(--sky);color:#164b57}.soft{background:#eee9ed;color:#4b454a}.danger{background:#f9dfe2;color:#9c3441}
+.form{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}label{display:block;font-size:12px;color:var(--muted);margin-top:7px}
+input,select,textarea{width:100%;margin-top:5px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit}textarea{min-height:85px}
+.choice{border:2px solid var(--line);border-radius:13px;padding:11px;margin:7px 0;cursor:pointer}.choice.active{border-color:var(--pink);background:#fff2f7}.choice small{display:block;margin-top:3px}
+.cols{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.result{background:#f2fbf7;border:1px solid #d7eee2;border-radius:15px;padding:13px;margin-top:10px}.line{padding:8px 0;border-bottom:1px solid #e6e0e5}.big{font-size:25px;font-weight:900}
+.notice{padding:10px 12px;background:#fff8df;border:1px solid #eedda8;border-radius:12px;font-size:13px;color:#69561d}.empty{text-align:center;color:var(--muted);padding:18px}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:8px 4px;border-bottom:1px solid var(--line);font-size:12px}
+.order{border:1px solid var(--line);border-radius:14px;padding:12px;margin:8px 0;background:#fff;cursor:pointer}.order:hover{border-color:#cfc7cd}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);z-index:30}nav .navinner{max-width:1050px;margin:auto;display:grid;grid-template-columns:repeat(6,1fr)}
+nav button{background:none;color:#756e75;border-radius:0;padding:7px 2px;font-size:10px}nav button.active{color:var(--pink)}nav span{display:block;font-size:18px}
+.price-grid{display:grid;grid-template-columns:1fr 150px;gap:7px;align-items:end}.section-title{margin-top:22px;padding-bottom:6px;border-bottom:2px solid var(--line);font-weight:900}
+@media(min-width:720px){.grid{grid-template-columns:repeat(4,1fr)}.form{grid-template-columns:repeat(3,1fr)}nav{position:sticky;top:0;bottom:auto}}
+</style>
+</head>
+<body>
+<header>
+  <img class="logo" src="logo.png" alt="NOT" onerror="this.alt='NOT';this.style.display='none'">
+  <div><div class="brand">NOT</div><div class="muted">Calculadora y gestión</div></div>
+</header>
+
+<main>
+<section id="inicio" class="page active">
+  <div class="grid">
+    <div class="stat"><small>Ventas activas</small><strong id="sVentas">$0</strong></div>
+    <div class="stat"><small>Costos</small><strong id="sCostos">$0</strong></div>
+    <div class="stat"><small>Ganancias</small><strong id="sGanancias">$0</strong></div>
+    <div class="stat"><small>Pedidos activos</small><strong id="sActivos">0</strong></div>
+  </div>
+  <div class="card">
+    <div class="row"><div><h2>📦 Stock de papeles</h2><small>Se descuenta solo al guardar un pedido.</small></div><button class="soft" onclick="go('costos')">Registrar compra</button></div>
+    <div id="inicioStock"></div>
+  </div>
+  <div class="card">
+    <div class="row"><div><h2>📋 Pedidos registrados</h2><small>Hacé click en un pedido para editarlo.</small></div><button onclick="go('pedidos')">+ Pedido</button></div>
+    <div id="inicioPedidos"></div>
+  </div>
+</section>
+
+<section id="calculadora" class="page">
+  <div class="card"><h2>🧮 Calculadora de Costos</h2><small>Calcula costo real y precio sugerido.</small>
+    <div class="form">
+      <div><label>Papel</label><select id="cPapel"></select></div>
+      <div><label>Hojas</label><input id="cHojas" type="number" min="1" value="1"></div>
+      <div><label>Tiempo por hoja (min)</label><input id="cTiempo" type="number" min="0" value="5"></div>
+      <div><label>Horas adicionales</label><input id="cHoras" type="number" min="0" value="0"></div>
+      <div><label>Minutos adicionales</label><input id="cMinutos" type="number" min="0" value="0"></div>
+      <div><label>Margen (%)</label><input id="cMargen" type="number" min="0" value="50"></div>
+    </div>
+    <div id="calcOut" class="result"></div>
+  </div>
+</section>
+
+<section id="pedidos" class="page">
+  <div class="card">
+    <div class="row"><div><h2 id="pedidoTitulo">🛍️ Nuevo pedido</h2><small>Armá el carrito del cliente.</small></div><button class="soft" onclick="nuevoPedido()">Limpiar form</button></div>
+    <div class="form">
+      <div><label>Nombre del Cliente *</label><input id="pNombre"></div>
+      <div><label>Teléfono</label><input id="pTelefono"></div>
+      <div><label>Fecha de entrega *</label><input id="pEntrega" type="date"></div>
+    </div>
+    
+    <div class="card" style="border-color:var(--pink); background:#fffafd; margin-top:15px">
+      <h3 style="margin-top:0; color:var(--pink)">🛒 Carrito de este cliente</h3>
+      <div id="carritoLista"></div>
+      <div class="row" style="margin-top:10px; border-top:2px solid var(--pink); padding-top:10px">
+         <b>GRAN TOTAL</b><span id="granTotal" class="big" style="color:var(--pink)">$0</span>
+      </div>
+    </div>
+
+    <h3>🎨 1. Configurar Artículo</h3><div id="artChoices"></div><div id="builder"></div>
+    
+    <div class="result"><h3 style="margin-top:0">💰 Cotización de este artículo</h3><div id="quote"></div><div class="row"><b>Subtotal</b><span id="total" class="big">$0</span></div>
+    <button class="yellow" style="width:100%;margin-top:10px;font-size:16px" onclick="addToCart()">➕ Añadir artículo al pedido</button>
+    </div>
+
+    <div class="card"><h3 style="margin-top:0">📝 2. Detalles generales</h3>
+      <div class="form">
+        <div><label>Estado del pedido</label>
+            <select id="pEstado">
+                <option value="Pendiente">Pendiente</option>
+                <option value="Diseñado">Diseñado</option>
+                <option value="Entregado">Entregado</option>
+                <option value="Cancelado">Cancelado</option>
+            </select>
+        </div>
+        <div><label>Temática</label><input id="pTematica" placeholder="Ej: Bautismo, Anime..."></div>
+        <div><label>Medida general</label><input id="pMedida"></div>
+        <div><label>Color general</label><input id="pColor"></div>
+      </div>
+      <label>Detalles extras para todo el pedido</label><textarea id="pDetalles"></textarea>
+    </div>
+    
+    <div class="actions" style="margin-top:15px">
+        <button onclick="guardarPedido()">💾 Guardar Pedido Completo</button>
+        <button class="sky" id="btnShare" onclick="compartirActual()" style="display:none">📲 Compartir presupuesto</button>
+        <button class="danger" id="btnEliminarPedido" onclick="eliminarPedido()" style="display:none;">🗑️ Eliminar Pedido</button>
+    </div>
+  </div>
+  <div class="card"><h2>📅 Todos los pedidos</h2><div id="pedidosLista"></div></div>
+</section>
+
+<section id="costos" class="page">
+  <div class="card"><div class="row"><div><h2>⚙️ Costos y precios</h2><small>Todo es editable y queda guardado.</small></div><div class="actions"><button class="sky" onclick="nuevoPedido();go('pedidos')">🛍️ Crear pedido</button><button onclick="guardarCostos()">Guardar</button></div></div>
+
+    <div class="section-title">📄 Precios de toppers</div>
+    <div class="price-grid"><label>Hoja A4 · diseño listo</label><input id="priceA" type="number"></div>
+    <div class="price-grid"><label>Hoja A4 · diseño personalizado</label><input id="priceB" type="number"></div>
+    <div class="price-grid"><label>💸 Costo material · hoja A4</label><input id="costSheetA4" type="number"></div>
+    <div class="price-grid"><label>Hasta 6 unidades · hojas</label><input id="mult6" type="number" step="0.01"></div>
+    <div class="price-grid"><label>Hasta 10 unidades · hojas</label><input id="mult10" type="number" step="0.01"></div>
+    <div class="price-grid"><label>Topper Simple · multiplicador</label><input id="styleSimple" type="number" step="0.01"></div>
+    <div class="price-grid"><label>Topper 3D · multiplicador</label><input id="style3d" type="number" step="0.01"></div>
+
+    <div class="section-title">✨ Topper Metalizado Personalizado</div>
+    <div class="price-grid"><label>Nombres / palabras · $ por cm</label><input id="metalNames" type="number"></div>
+    <div class="price-grid"><label>Frases, iniciales y números · $ por cm</label><input id="metalPhrases" type="number"></div>
+    <div class="price-grid"><label>Figuras especiales · $ por cm</label><input id="metalFigures" type="number"></div>
+
+    <div class="section-title">➕ Extras</div>
+    <div class="price-grid"><label>Topper Premium · $ por hoja</label><input id="premiumPrice" type="number"></div>
+    <div class="price-grid"><label>Capa extra · $ por hoja</label><input id="extraLayer" type="number"></div>
+    <div class="price-grid"><label>Acetato</label><input id="acetatePrice" type="number"></div>
+
+    <div class="section-title">🧁 Artículos adicionales</div>
+    <div id="artEditor"></div><button class="soft" onclick="addArticle()">＋ Agregar artículo</button>
+
+    <div class="section-title">📦 Costos reales</div>
+    <div class="form">
+      <div><label>Tinta $/litro</label><input class="cost" data-k="inkPrice" type="number"></div>
+      <div><label>Consumo tinta ml/hoja</label><input class="cost" data-k="inkMl" type="number"></div>
+      <div><label>Electricidad $/kWh</label><input class="cost" data-k="electricity" type="number"></div>
+      <div><label>Consumo impresora kW</label><input class="cost" data-k="printerKw" type="number"></div>
+      <div><label>Costo impresora</label><input class="cost" data-k="printerCost" type="number"></div>
+      <div><label>Vida útil en hojas</label><input class="cost" data-k="printerLife" type="number"></div>
+      <div><label>Otros $/hoja</label><input class="cost" data-k="other" type="number"></div>
+      <div><label>Valor hora de trabajo</label><input class="cost" data-k="hour" type="number"></div>
+      <div><label>Margen predeterminado %</label><input class="cost" data-k="margin" type="number"></div>
+      <div><label>Tiempo prom. de impresión por hoja (min)</label><input class="cost" data-k="avgTimePerSheet" type="number"></div>
+    </div>
+
+    <div class="section-title">🖋️ Registro de compra de tinta</div>
+    <small>Cada compra actualiza el costo de tinta $/litro de referencia.</small>
+    <div class="form">
+      <div><label>Fecha</label><input id="inkBuyDate" type="date"></div>
+      <div><label>Precio pagado</label><input id="inkBuyPrice" type="number" placeholder="$"></div>
+      <div><label>Mililitros comprados</label><input id="inkBuyMl" type="number" placeholder="ml"></div>
+    </div>
+    <button class="soft" onclick="addInkPurchase()">➕ Agregar compra de tinta</button>
+    <div id="inkPurchaseList"></div>
+
+    <div class="section-title">📃 Papeles</div><div id="paperEditor"></div><button class="soft" onclick="addPaper()">＋ Agregar papel</button>
+  </div>
+</section>
+
+<section id="balance" class="page">
+  <div class="card">
+    <h2>📊 Balance</h2><small>Resumen de gastos y ganancias del período. Por defecto muestra el mes corrido hasta hoy.</small>
+    <div class="form">
+      <div><label>Desde</label><input id="balDesde" type="date" onchange="renderBalance()"></div>
+      <div><label>Hasta</label><input id="balHasta" type="date" onchange="renderBalance()"></div>
+    </div>
+    <div class="actions" style="margin-top:10px">
+      <button class="soft" onclick="balRange('month')">Este mes</button>
+      <button class="soft" onclick="balRange('lastmonth')">Mes anterior</button>
+      <button class="soft" onclick="balRange('year')">Este año</button>
+      <button class="soft" onclick="balRange('all')">Todo</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="stat"><small>💰 Ingresos</small><strong id="balVentas">$0</strong></div>
+    <div class="stat"><small>🧾 Costos</small><strong id="balCostosStat">$0</strong></div>
+    <div class="stat"><small>📈 Ganancia</small><strong id="balGanancia">$0</strong></div>
+    <div class="stat"><small>💸 Gastado (compras)</small><strong id="balGastado">$0</strong></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">📈 Evolución en el período</h3>
+    <div id="balChart" style="overflow-x:auto"></div>
+    <div class="row" style="margin-top:8px;font-size:12px;color:var(--muted);justify-content:flex-start;gap:16px">
+      <span><span style="color:var(--pink)">●</span> Ingresos</span><span><span style="color:var(--sky)">●</span> Costos</span><span><span style="color:var(--yellow)">●</span> Gasto</span>
+    </div>
+  </div>
+
+  <div class="card" style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;justify-content:center">
+    <div id="balDonut"></div>
+    <div id="balDonutLegend" style="font-size:13px"></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">🏷️ Pedidos por producto</h3><small>Cantidad vendida de cada producto en el período.</small>
+    <div id="balProductos" style="margin-top:10px"></div>
+  </div>
+
+  <div class="result">
+    <h3 style="margin-top:0">📋 Detalle del período</h3>
+    <div id="balDetalle"></div>
+  </div>
+</section>
+
+<section id="ajustes" class="page">
+  <div class="card"><h2>⚙️ Ajustes</h2>
+    <div class="card"><h3 style="margin-top:0">📊 Excel</h3><small>Exporta un archivo CSV compatible con Excel con todos los datos.</small><br><button class="sky" onclick="exportCSV()">📥 Exportar datos</button></div>
+    <div class="card"><h3 style="margin-top:0">🧹 Limpiar Pedidos</h3><small>Borra el historial de pedidos pero mantiene todos tus precios y configuraciones.</small><br><button class="yellow" onclick="resetPedidos()">Limpiar pedidos</button></div>
+    <div class="card"><h3 style="margin-top:0">♻️ Resetear</h3><small>Borra TODO (pedidos y precios) y vuelve a la configuración inicial de la app.</small><br><button class="danger" onclick="resetApp()">Resetear app completa</button></div>
+  </div>
+</section>
+</main>
+
+<nav><div class="navinner">
+<button data-page="inicio" class="active" onclick="go('inicio')"><span>🏠</span>Inicio</button>
+<button data-page="calculadora" onclick="go('calculadora')"><span>🧮</span>Calculadora</button>
+<button data-page="pedidos" onclick="go('pedidos')"><span>🛍️</span>Pedidos</button>
+<button data-page="costos" onclick="go('costos')"><span>⚙️</span>Costos</button>
+<button data-page="balance" onclick="go('balance')"><span>📊</span>Balance</button>
+<button data-page="ajustes" onclick="go('ajustes')"><span>↗️</span>Ajustes</button>
+</div></nav>
+
+<script>
+const KEY='NOT_FINAL_2026_V5';
+const initial={
+  prices:{A:3500,B:5500,costSheetA4:0,mult6:1,mult10:1.4,simple:1,threeD:2.5,metalNames:400,metalPhrases:600,metalFigures:850,premium:7000,layer:2000,acetate:1000},
+  articles:[
+    {name:'Hoja personalizada',price:1500,materialCost:0,desc:'Hoja de papelería personalizada'},
+    {name:'Stickers personalizado',price:1800,materialCost:0,desc:'Stickers personalizados'}
+  ],
+  papers:[{name:'Papel Glossy',packPrice:10302,packQty:100},{name:'Stickers',packPrice:0,packQty:1}],
+  costs:{inkPrice:11200,inkMl:1.8,electricity:182.39,printerKw:.12,printerCost:580000,printerLife:30000,other:0,hour:5300,margin:50,avgTimePerSheet:5},
+  orders:[],
+  inkPurchases:[]
+};
+let db=JSON.parse(localStorage.getItem(KEY)||'null')||JSON.parse(JSON.stringify(initial));
+db.prices=Object.assign({costSheetA4:0},db.prices||{});
+db.articles=(db.articles||[]).map(a=>Object.assign({materialCost:0},a));
+db.orders=(db.orders||[]).map(o=>Object.assign({cost:0,materialSheets:0},o));
+db.papers=db.papers||[];
+db.inkPurchases=db.inkPurchases||[];
+db.costs.avgTimePerSheet=(typeof db.costs.avgTimePerSheet==='number')?db.costs.avgTimePerSheet:5;
+if(!db.papers.some(p=>p.name==='Stickers')){
+  db.papers.push({name:'Stickers',packPrice:db.prices.costStickerSheet||0,packQty:1});
+}
+delete db.prices.costStickerSheet;
+// Migración: id estable, stock y compras por papel
+let __maxPaperId=0;
+db.papers.forEach(p=>{ if(p.id) __maxPaperId=Math.max(__maxPaperId,p.id); });
+db.papers.forEach(p=>{
+  if(!p.id){ __maxPaperId++; p.id=__maxPaperId; }
+  if(typeof p.stock!=='number') p.stock=0;
+  if(!Array.isArray(p.purchases)) p.purchases=[];
+});
+if(typeof db.nextPaperId!=='number') db.nextPaperId=__maxPaperId+1;
+// Vincular artículos existentes a un papel por defecto (heurística por nombre)
+db.articles.forEach(a=>{
+  if(typeof a.paperId==='undefined'){
+    const guess=db.papers.find(p=>a.name.toLowerCase().includes(p.name.toLowerCase().split(' ')[0].toLowerCase()));
+    a.paperId = guess ? guess.id : (db.papers[0]?db.papers[0].id:null);
+  }
+});
+
+// Migración para asignar números a pedidos viejos si no los tienen
+if (typeof db.lastOrderNumber === 'undefined') {
+    db.lastOrderNumber = 0;
+    db.orders.forEach(o => {
+        db.lastOrderNumber++;
+        if(!o.orderNumber) o.orderNumber = db.lastOrderNumber;
+    });
+}
+db.orders.forEach(o=>{ if(!o.registeredISO) o.registeredISO = parseRegistered(o.registered) || new Date().toISOString().slice(0,10); });
+
+let editId=null, selected=null;
+let currentCart=[]; 
+let topper={type:'A',mode:'6',qty:6,style:'simple',premium:false,premiumColor:'dorado',layer:false,acetate:false,paperId:(db.papers[0]?db.papers[0].id:null)};
+let metal={type:'names',size:'10',custom:10};
+
+const $=id=>document.getElementById(id);
+const money=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:2}).format(Number(n)||0);
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+const save=()=>localStorage.setItem(KEY,JSON.stringify(db));
+const clone=o=>JSON.parse(JSON.stringify(o));
+
+function go(page){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$(page).classList.add('active');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));renderAll();window.scrollTo(0,0)}
+
+function nuevoPedido(){
+    editId=null; selected=null; currentCart=[];
+    topper={type:'A',mode:'6',qty:6,style:'simple',premium:false,premiumColor:'dorado',layer:false,acetate:false,paperId:(db.papers[0]?db.papers[0].id:null)};
+    metal={type:'names',size:'10',custom:10};
+    ['pNombre','pTelefono','pEntrega','pTematica','pMedida','pColor','pDetalles'].forEach(x=>$(x).value='');
+    $('pEstado').value = 'Pendiente';
+    $('pedidoTitulo').textContent='🛍️ Nuevo pedido';
+    if($('btnEliminarPedido')) $('btnEliminarPedido').style.display='none';
+    if($('btnShare')) $('btnShare').style.display='none';
+    renderCarrito();
+    renderAll();
+}
+
+function unitPaper(p){return p.packPrice/Math.max(1,p.packQty)}
+function round2(n){return Math.round(n*100)/100}
+function parseRegistered(s){
+  if(!s) return null;
+  const parts=String(s).split('/');
+  if(parts.length!==3) return null;
+  return `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+}
+
+function adjustStock(items, sign){
+  (items||[]).forEach(item=>{
+    const pid = item.paperId;
+    const sheets = Number(item.quote && item.quote.materialSheets) || 0;
+    if(pid!=null && sheets>0){
+      const paper = db.papers.find(p=>p.id===pid);
+      if(paper) paper.stock = round2((paper.stock||0) + sign*sheets);
+    }
+  });
+}
+
+function addPurchase(i){
+  const paper = db.papers[i]; if(!paper) return;
+  const date = $('buyDate_'+i).value || new Date().toISOString().slice(0,10);
+  const price = +$('buyPrice_'+i).value || 0;
+  const qty = +$('buyQty_'+i).value || 0;
+  if(qty<=0){alert('Ingresá la cantidad de hojas compradas.');return;}
+  paper.purchases = paper.purchases || [];
+  paper.purchases.unshift({date, price, qty});
+  paper.stock = round2((paper.stock||0) + qty);
+  paper.packPrice = price; paper.packQty = qty; // el costo de referencia pasa a ser el de la última compra
+  save(); renderAll();
+}
+function deletePaperPurchase(pi, ji){
+  const paper = db.papers[pi]; if(!paper || !paper.purchases || !paper.purchases[ji]) return;
+  if(!confirm('¿Eliminar esta compra? Se descontará del stock lo que había sumado.')) return;
+  const c = paper.purchases[ji];
+  paper.stock = round2((paper.stock||0) - (Number(c.qty)||0));
+  paper.purchases.splice(ji,1);
+  save(); renderAll();
+}
+function addInkPurchase(){
+  const date = $('inkBuyDate').value || new Date().toISOString().slice(0,10);
+  const price = +$('inkBuyPrice').value || 0;
+  const ml = +$('inkBuyMl').value || 0;
+  if(ml<=0){alert('Ingresá los mililitros comprados.');return;}
+  db.inkPurchases = db.inkPurchases||[];
+  db.inkPurchases.unshift({date, price, ml});
+  db.costs.inkPrice = round2(price/ml*1000); // costo de referencia $/litro según última compra
+  $('inkBuyPrice').value=''; $('inkBuyMl').value='';
+  save(); renderAll();
+  alert('Compra de tinta registrada.');
+}
+function deleteInkPurchase(j){
+  if(!confirm('¿Eliminar esta compra de tinta?')) return;
+  db.inkPurchases.splice(j,1); save(); renderAll();
+}
+function renderInkPurchases(){
+  if(!$('inkPurchaseList')) return;
+  if($('inkBuyDate') && !$('inkBuyDate').value) $('inkBuyDate').value=new Date().toISOString().slice(0,10);
+  const list = db.inkPurchases||[];
+  $('inkPurchaseList').innerHTML = list.length ? `<div style="margin-top:10px;font-size:12px;color:var(--muted)">${list.map((c,j)=>`<div class="row" style="padding:4px 0"><span>📅 ${c.date.split('-').reverse().join('/')} · ${c.ml} ml · ${money(c.price)}</span><button class="danger" style="padding:3px 8px;font-size:10px" onclick="deleteInkPurchase(${j})">✕</button></div>`).join('')}</div>` : '<div class="empty">Sin compras registradas.</div>';
+}
+function calc(){
+ const sel=$('cPapel').value; const p=db.papers[Number(sel)||0]||db.papers[0]; const q=Math.max(1,Number($('cHojas').value)||1),t=Number($('cTiempo').value)||0,h=Number($('cHoras').value)||0,m=Number($('cMinutos').value)||0,mg=Number($('cMargen').value)||0;
+ const parts=[['Papel',unitPaper(p)*q],['Tinta',db.costs.inkPrice/1000*db.costs.inkMl*q],['Electricidad',db.costs.electricity*db.costs.printerKw/60*t*q],['Desgaste',db.costs.printerLife?db.costs.printerCost/db.costs.printerLife*q:0],['Otros',db.costs.other*q],['Mano de obra',db.costs.hour*(h+m/60)]];
+ const c=parts.reduce((a,x)=>a+x[1],0),v=c*(1+mg/100);
+ $('calcOut').innerHTML=parts.map(x=>`<div class="row line"><span>${x[0]}</span><b>${money(x[1])}</b></div>`).join('')+`<div class="row"><b>COSTO REAL</b><b>${money(c)}</b></div><div class="row"><span>Precio sugerido</span><b class="big">${money(v)}</b></div><div class="row"><span>Ganancia</span><b>${money(v-c)}</b></div>`;
+}
+
+function renderPriceInputs(){
+ const p=db.prices;[['priceA',p.A],['priceB',p.B],['costSheetA4',p.costSheetA4||0],['mult6',p.mult6],['mult10',p.mult10],['styleSimple',p.simple],['style3d',p.threeD],['metalNames',p.metalNames],['metalPhrases',p.metalPhrases],['metalFigures',p.metalFigures],['premiumPrice',p.premium],['extraLayer',p.layer],['acetatePrice',p.acetate]].forEach(([id,v])=>$(id).value=v);
+ document.querySelectorAll('.cost').forEach(i=>i.value=db.costs[i.dataset.k]);
+ $('artEditor').innerHTML=db.articles.map((a,i)=>`<div class="card"><div class="form"><div><label>Artículo</label><input class="an" data-i="${i}" value="${esc(a.name)}"></div><div><label>Precio unitario</label><input class="ap" data-i="${i}" type="number" value="${a.price}"></div><div><label>Costo material</label><input class="ac" data-i="${i}" type="number" value="${a.materialCost||0}"></div><div><label>Descripción</label><input class="ad" data-i="${i}" value="${esc(a.desc)}"></div><div><label>Papel asociado (para descontar stock)</label><select class="apap" data-i="${i}"><option value="">Ninguno</option>${db.papers.map(p=>`<option value="${p.id}" ${a.paperId===p.id?'selected':''}>${esc(p.name)}</option>`).join('')}</select></div></div><br><button class="danger" onclick="deleteArticle(${i})">Eliminar artículo</button></div>`).join('');
+ $('paperEditor').innerHTML=db.papers.map((p,i)=>`<div class="card">
+   <div class="form">
+     <div><label>Papel</label><input class="pn" data-i="${i}" value="${esc(p.name)}"></div>
+     <div><label>Precio paquete (referencia)</label><input class="pp" data-i="${i}" type="number" value="${p.packPrice}"></div>
+     <div><label>Hojas por paquete</label><input class="pq" data-i="${i}" type="number" value="${p.packQty}"></div>
+     <div><label>📦 Stock actual (hojas)</label><input class="pst" data-i="${i}" type="number" value="${p.stock||0}"></div>
+   </div>
+   <div class="section-title" style="margin-top:14px;font-size:13px">🧾 Registrar compra</div>
+   <div class="form">
+     <div><label>Fecha</label><input id="buyDate_${i}" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+     <div><label>Precio pagado</label><input id="buyPrice_${i}" type="number" placeholder="$"></div>
+     <div><label>Hojas compradas</label><input id="buyQty_${i}" type="number" placeholder="0"></div>
+   </div>
+   <button class="soft" style="margin-top:8px" onclick="addPurchase(${i})">➕ Agregar compra</button>
+   ${(p.purchases&&p.purchases.length)?`<div style="margin-top:10px;font-size:12px;color:var(--muted)">${p.purchases.map((c,j)=>`<div class="row" style="padding:4px 0"><span>📅 ${c.date.split('-').reverse().join('/')} · ${c.qty} hojas · ${money(c.price)}</span><button class="danger" style="padding:3px 8px;font-size:10px" onclick="deletePaperPurchase(${i},${j})">✕</button></div>`).join('')}</div>`:''}
+   <br><button class="danger" style="margin-top:10px" onclick="deletePaper(${i})">Eliminar papel</button>
+ </div>`).join('');
+}
+function guardarCostos(){
+ const p=db.prices;p.A=+$('priceA').value;p.B=+$('priceB').value;p.costSheetA4=+$('costSheetA4').value;p.mult6=+$('mult6').value;p.mult10=+$('mult10').value;p.simple=+$('styleSimple').value;p.threeD=+$('style3d').value;p.metalNames=+$('metalNames').value;p.metalPhrases=+$('metalPhrases').value;p.metalFigures=+$('metalFigures').value;p.premium=+$('premiumPrice').value;p.layer=+$('extraLayer').value;p.acetate=+$('acetatePrice').value;
+ document.querySelectorAll('.cost').forEach(i=>db.costs[i.dataset.k]=+i.value||0);
+ document.querySelectorAll('.an').forEach(i=>db.articles[i.dataset.i].name=i.value);document.querySelectorAll('.ap').forEach(i=>db.articles[i.dataset.i].price=+i.value||0);document.querySelectorAll('.ac').forEach(i=>db.articles[i.dataset.i].materialCost=+i.value||0);document.querySelectorAll('.ad').forEach(i=>db.articles[i.dataset.i].desc=i.value);document.querySelectorAll('.apap').forEach(i=>db.articles[i.dataset.i].paperId=i.value?+i.value:null);
+ document.querySelectorAll('.pn').forEach(i=>db.papers[i.dataset.i].name=i.value);document.querySelectorAll('.pp').forEach(i=>db.papers[i.dataset.i].packPrice=+i.value||0);document.querySelectorAll('.pq').forEach(i=>db.papers[i.dataset.i].packQty=+i.value||1);document.querySelectorAll('.pst').forEach(i=>db.papers[i.dataset.i].stock=+i.value||0);
+ save();alert('Precios y costos guardados.');renderAll()
+}
+
+function addArticle(){db.articles.push({name:'Nuevo artículo',price:0,materialCost:0,desc:'',paperId:(db.papers[0]?db.papers[0].id:null)});save();renderAll()}
+function deleteArticle(i){if(confirm('¿Seguro que querés eliminar este artículo?')){db.articles.splice(i,1);save();renderAll()}}
+function addPaper(){db.papers.push({id:db.nextPaperId++,name:'Nuevo papel',packPrice:0,packQty:1,stock:0,purchases:[]});save();renderAll()}
+function deletePaper(i){if(confirm('¿Seguro que querés eliminar este papel? Los artículos o toppers que lo tenían asignado van a dejar de descontar stock.')){db.papers.splice(i,1);save();renderAll()}}
+
+function renderChoices(){
+ $('artChoices').innerHTML=`<div class="cols">
+ <div class="choice ${selected==='topper'?'active':''}" onclick="selectProduct('topper')"><b>🎂 Toppers hoja A4</b></div>
+ <div class="choice ${selected==='metal'?'active':''}" onclick="selectProduct('metal')"><b>✨ Topper Metalizado</b></div>
+ ${db.articles.map((a,i)=>`<div class="choice ${selected==='article:'+i?'active':''}" onclick="selectProduct('article:${i}')"><b>${esc(a.name)}</b><small>${money(a.price)}</small></div>`).join('')}
+ </div>`;
+}
+function selectProduct(x){selected=x;renderChoices();renderBuilder()}
+
+function topperSheets(){if(topper.mode==='6')return db.prices.mult6;if(topper.mode==='10')return db.prices.mult10;const q=Math.max(1,topper.qty);return q<=6?q/6:q<=10?db.prices.mult10:q/8}
+function topperQuote(){
+ const sheets=topperSheets(),base=sheets*(topper.type==='A'?db.prices.A:db.prices.B);
+ let total=base,cost=sheets*(db.prices.costSheetA4||0);
+ let lines=[['Base A4',`${sheets.toFixed(2)} hojas`,base]];
+ if(topper.style==='3d'){const add=base*(db.prices.threeD-1);total+=add;lines.push(['Topper 3D',`×${db.prices.threeD}`,add])}
+ if(topper.type==='B'&&topper.premium){const v=sheets*db.prices.premium;total+=v;lines.push(['Premium',`${sheets.toFixed(2)} hojas`,v])}
+ if(topper.type==='B'&&topper.layer){const v=sheets*db.prices.layer;total+=v;lines.push(['Capa extra',`${sheets.toFixed(2)} hojas`,v])}
+ if(topper.type==='B'&&topper.acetate){total+=db.prices.acetate;lines.push(['Acetato','Parte transparente',db.prices.acetate])}
+ return {total,cost,materialSheets:sheets,lines,quantity:topper.mode==='exact'?topper.qty:topper.mode==='6'?6:10}
+}
+function renderBuilder(){
+ if(!selected){$('builder').innerHTML='<div class="notice">Seleccioná un artículo de arriba.</div>';updateQuote();return}
+ if(selected==='topper'){
+  $('builder').innerHTML=`<div class="card"><h3 style="margin-top:0">0️⃣ Papel</h3><div class="cols">
+  ${db.papers.map(p=>`<div class="choice ${topper.paperId===p.id?'active':''}" onclick="setTop('paperId',${p.id})"><b>${esc(p.name)}</b><small>Stock: ${p.stock||0} hojas</small></div>`).join('')}
+  </div>
+  <h3>1️⃣ Diseño</h3>
+  <div class="choice ${topper.type==='A'?'active':''}" onclick="setTop('type','A')"><b>A · Diseño listo — ${money(db.prices.A)}/hoja</b></div>
+  <div class="choice ${topper.type==='B'?'active':''}" onclick="setTop('type','B')"><b>B · Diseño personalizado — ${money(db.prices.B)}/hoja</b></div>
+  <h3>2️⃣ Cantidad</h3><div class="cols">
+  <div class="choice ${topper.mode==='6'?'active':''}" onclick="setTop('mode','6')"><b>Hasta 6</b></div>
+  <div class="choice ${topper.mode==='10'?'active':''}" onclick="setTop('mode','10')"><b>Hasta 10</b></div>
+  <div class="choice ${topper.mode==='exact'?'active':''}" onclick="setTop('mode','exact')"><b>Exacta</b></div></div>
+  ${topper.mode==='exact'?`<label>Cantidad</label><input type="number" min="1" value="${topper.qty}" oninput="topper.qty=+this.value||1;updateQuote()">`:''}
+  <h3>3️⃣ Estilo</h3><div class="cols"><div class="choice ${topper.style==='simple'?'active':''}" onclick="setTop('style','simple')"><b>Simple</b></div><div class="choice ${topper.style==='3d'?'active':''}" onclick="setTop('style','3d')"><b>3D</b></div></div>
+  ${topper.type==='B'?`<h3>4️⃣ Extras</h3>
+  <div class="choice ${topper.premium?'active':''}" onclick="topper.premium=!topper.premium;renderBuilder()"><b>✨ Premium — ${money(db.prices.premium)}/hoja</b></div>
+  <div class="choice ${topper.layer?'active':''}" onclick="topper.layer=!topper.layer;renderBuilder()"><b>➕ Capa extra — ${money(db.prices.layer)}/hoja</b></div>
+  <div class="choice ${topper.acetate?'active':''}" onclick="topper.acetate=!topper.acetate;renderBuilder()"><b>🔹 Acetato — ${money(db.prices.acetate)}</b></div>`:''}</div>`;
+ }else if(selected==='metal'){
+  const rate=metal.type==='names'?db.prices.metalNames:metal.type==='phrases'?db.prices.metalPhrases:db.prices.metalFigures;
+  $('builder').innerHTML=`<div class="card"><h3 style="margin-top:0">✨ Metalizado</h3>
+  <div class="cols"><div class="choice ${metal.type==='names'?'active':''}" onclick="metal.type='names';renderBuilder()">Nombres</div><div class="choice ${metal.type==='phrases'?'active':''}" onclick="metal.type='phrases';renderBuilder()">Frases</div><div class="choice ${metal.type==='figures'?'active':''}" onclick="metal.type='figures';renderBuilder()">Figuras</div></div>
+  <h3>📏 Medida</h3><div class="cols">${['10','12','15'].map(x=>`<div class="choice ${metal.size===x?'active':''}" onclick="metal.size='${x}';renderBuilder()"><b>${x}cm</b></div>`).join('')}<div class="choice ${metal.size==='custom'?'active':''}" onclick="metal.size='custom';renderBuilder()"><b>Otra</b></div></div>${metal.size==='custom'?`<label>Centímetros</label><input type="number" min="1" value="${metal.custom}" oninput="metal.custom=+this.value||1;updateQuote()">`:''}</div>`;
+ }else{
+  const a=db.articles[+selected.split(':')[1]]; $('builder').innerHTML=`<div class="card"><div class="form"><div><label>Cantidad</label><input id="artQty" type="number" min="1" value="${currentQty()}"></div></div><small>${esc(a.desc)}</small></div>`;
+  $('artQty').addEventListener('input',updateQuote)
+ }
+ updateQuote()
+}
+function setTop(k,v){topper[k]=v;renderBuilder()}
+function currentQty(){return Number(window.currentArticleQty||1)}
+function currentQuote(){
+ if(selected==='topper')return topperQuote();
+ if(selected==='metal'){const cm=metal.size==='custom'?metal.custom:+metal.size;const r=metal.type==='names'?db.prices.metalNames:metal.type==='phrases'?db.prices.metalPhrases:db.prices.metalFigures;return {total:cm*r,lines:[['Metalizado',`${cm} cm`,cm*r]],quantity:1}}
+ if(selected&&selected.startsWith('article:')){const a=db.articles[+selected.split(':')[1]],q=Number($('artQty')?.value||window.currentArticleQty||1);window.currentArticleQty=q;return {total:a.price*q,cost:(a.materialCost||0)*q,materialSheets:q,lines:[[a.name,`${q} unidad(es)`,a.price*q]],quantity:q}}
+ return {total:0,lines:[]}
+}
+function updateQuote(){const q=currentQuote();$('quote').innerHTML=q.lines.length?q.lines.map(x=>`<div class="row line"><span>${esc(x[0])}<br><small>${esc(x[1])}</small></span><b>${money(x[2])}</b></div>`).join(''):'<div class="empty">Seleccioná un artículo.</div>';$('total').textContent=money(q.total); if($('quote')) $('quote').insertAdjacentHTML('beforeend', `<div class="row line"><span>🧾 Costo material</span><b>${money(q.cost||0)}</b></div>`)}
+
+/* --- CARRITO --- */
+function addToCart(){
+  if(!selected){alert('Configurá un artículo primero.');return;}
+  const q = currentQuote();
+  let itemName = "Extra", paperId = null;
+  if(selected === 'topper'){ itemName = "Topper A4"; paperId = topper.paperId; }
+  if(selected === 'metal') itemName = "Topper Metal";
+  if(selected.startsWith('article:')){ const a = db.articles[+selected.split(':')[1]]; itemName = a.name; paperId = (typeof a.paperId!=='undefined')?a.paperId:null; }
+
+  currentCart.push({name: itemName, type: selected, paperId, topper: selected==='topper'?clone(topper):null, metal: selected==='metal'?clone(metal):null, quote: q});
+  renderCarrito(); selected=null; renderChoices(); renderBuilder();
+}
+
+function removeFromCart(index){currentCart.splice(index, 1); renderCarrito();}
+
+function renderCarrito(){
+  let gt = 0, gc = 0;
+  $('carritoLista').innerHTML = currentCart.map((item, i) => {
+    gt += item.quote.total; gc += item.quote.cost;
+    return `<div class="row line">
+      <div style="font-size:13px; width:100%"><b style="color:var(--pink)">▶ ${esc(item.name)}</b><br>
+      ${item.quote.lines.map(l => `• ${esc(l[0])}${l[1]?` (${esc(l[1])})`:''}: ${money(l[2])}`).join('<br>')}
+      </div><div style="text-align:right"><b class="big" style="display:block;margin-bottom:4px">${money(item.quote.total)}</b>
+      <button class="danger" style="padding:5px 9px;font-size:11px" onclick="removeFromCart(${i})">Borrar</button></div>
+    </div>`;
+  }).join('') || '<div class="empty">Carrito vacío.</div>';
+  $('granTotal').textContent = money(gt);
+}
+
+function loadOrder(id){
+ const o=db.orders.find(x=>Number(x.id)===Number(id));if(!o)return;editId=id;
+ $('pNombre').value=o.client;$('pTelefono').value=o.phone||'';$('pEntrega').value=o.delivery||'';
+ $('pEstado').value=o.status||'Pendiente'; $('pTematica').value=o.tematica||''; $('pMedida').value=o.measure||'';$('pColor').value=o.color||'';$('pDetalles').value=o.details||'';
+ if(o.items){currentCart = clone(o.items);} else {currentCart = [{ name: o.article, type: o.article, topper: o.topper||null, metal: o.metal||null, quote: {total: o.total, cost: o.cost, materialSheets: o.materialSheets, lines: o.lines||[], quantity: o.quantity} }];}
+ $('pedidoTitulo').textContent='✏️ Editar pedido #'+String(o.orderNumber||0).padStart(2, '0');
+ if($('btnEliminarPedido')) $('btnEliminarPedido').style.display='inline-block';
+ if($('btnShare')) $('btnShare').style.display='inline-block';
+ renderCarrito(); go('pedidos');
+}
+
+function guardarPedido(){
+ if(!$('pNombre').value.trim() || !$('pEntrega').value){alert('Completá nombre y entrega.');return;}
+ if(currentCart.length === 0){alert('Agregá algo al carrito.');return;}
+ let gt = currentCart.reduce((sum, item) => sum + item.quote.total, 0), gc = currentCart.reduce((sum, item) => sum + (item.quote.cost||0), 0);
+ 
+ const data = {client: $('pNombre').value.trim(), phone: $('pTelefono').value.trim(), delivery: $('pEntrega').value, status: $('pEstado').value, tematica: $('pTematica').value.trim(), measure: $('pMedida').value.trim(), color: $('pColor').value.trim(), details: $('pDetalles').value.trim(), items: currentCart, total: gt, cost: gc, article: `Varios (${currentCart.length})`};
+ 
+ if(editId){
+     const existing = db.orders.find(o=>Number(o.id)===Number(editId));
+     adjustStock(existing.items, +1); // devuelve el stock que había consumido la versión anterior
+     Object.assign(existing, data);
+     adjustStock(existing.items, -1); // descuenta el stock según el carrito actualizado
+ }else{
+     db.lastOrderNumber++;
+     const nuevo = {...data, id:Date.now(), orderNumber: db.lastOrderNumber, registered:new Date().toLocaleDateString('es-AR'), registeredISO:new Date().toISOString().slice(0,10)};
+     db.orders.push(nuevo);
+     adjustStock(nuevo.items, -1);
+ }
+ save();alert('Pedido guardado.'); nuevoPedido();go('inicio');
+}
+
+function eliminarPedido(){
+  if(confirm('¿Seguro que querés eliminar este pedido completo?')){
+    const o = db.orders.find(o=>Number(o.id)===Number(editId));
+    if(o) adjustStock(o.items, +1);
+    db.orders=db.orders.filter(o=>Number(o.id)!==Number(editId));
+    save();alert('Pedido eliminado correctamente.');nuevoPedido();go('inicio');
+  }
+}
+
+function textOrder(o){
+  let itemsText = (o.items || []).map((item, i) => {
+    let emoji = '📦';
+    if(item.type === 'topper') emoji = '🎂';
+    else if(item.type === 'metal') emoji = '✨';
+    else emoji = '🏷️';
+    return `${emoji} *Artículo ${i+1}: ${esc(item.name)}*\n` + item.quote.lines.map(x => `  • ${x[0]}${x[1]?` (${x[1]})`:''}: *${money(x[2])}*`).join('\n');
+  }).join('\n\n');
+  
+  return `✨ *NOT — Presupuesto* ✨\n\n🔖 *Pedido:* #${String(o.orderNumber||0).padStart(2,'0')}\n👤 *Cliente:* ${o.client}${o.phone?`\n📱 *Tel:* ${o.phone}`:''}\n📅 *Entrega:* ${o.delivery?o.delivery.split('-').reverse().join('/'):'A confirmar'}\n\n${itemsText}\n\n${o.tematica?`🎉 *Temática:* ${o.tematica}\n`:''}${o.measure?`📏 *Medida general:* ${o.measure}\n`:''}${o.color?`🎨 *Color general:* ${o.color}\n`:''}${o.details?`📝 *Detalles:* ${o.details}\n`:''}\n💰 *TOTAL:* *${money(o.total)}*\n\nGracias por elegir NOT 💖`;
+}
+
+function share(o){const text=textOrder(o);if(navigator.share)navigator.share({title:'Presupuesto NOT',text});else window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank')}
+function compartirActual(){const o = db.orders.find(x=>Number(x.id)===Number(editId)); if(o) share(o); else alert('Guardá el pedido primero.');}
+
+function renderOrders(){
+ const arr=[...db.orders].sort((a,b)=>String(a.delivery).localeCompare(String(b.delivery)));
+ $('pedidosLista').innerHTML=arr.length?arr.map(o=>`<div class="order" onclick="loadOrder(${o.id})"><div class="row"><div><b>#${String(o.orderNumber||0).padStart(2,'0')} · ${esc(o.client)}</b><br><small>📅 ${o.delivery.split('-').reverse().join('/')} · 📌 ${o.status}</small></div><b>${money(o.total)}</b></div></div>`).join(''):'<div class="empty">No hay pedidos.</div>';
+}
+function renderInicio(){
+ const activeOrders = db.orders.filter(o=>!['Entregado','Cancelado'].includes(o.status));
+ const ventas = activeOrders.reduce((a,o)=>a+(Number(o.total)||0),0);
+ const cost = activeOrders.reduce((a,o)=>a+(Number(o.cost)||0),0);
+ 
+ $('sVentas').textContent=money(ventas);$('sCostos').textContent=money(cost);$('sGanancias').textContent=money(ventas-cost);$('sActivos').textContent=activeOrders.length;
+ 
+ $('inicioStock').innerHTML = db.papers.length ? `<div class="cols">${db.papers.map(p=>{const bajo=(p.stock||0)<20; return `<div class="stat" style="margin:0${bajo?';border-color:#f0b8bd':''}"><small>${esc(p.name)}${bajo?' ⚠️':''}</small><strong style="${bajo?'color:#9c3441':''}">${p.stock||0} hojas</strong></div>`}).join('')}</div>` : '<div class="empty">Sin papeles cargados.</div>';
+ 
+ const arr=[...db.orders].sort((a,b)=>String(a.delivery).localeCompare(String(b.delivery)));
+ $('inicioPedidos').innerHTML=arr.length?arr.map(o=>`<div class="order" onclick="loadOrder(${o.id})"><div class="row"><div><b>#${String(o.orderNumber||0).padStart(2,'0')} · ${esc(o.client)}</b><br><small>📅 ${o.delivery.split('-').reverse().join('/')} · 📌 ${o.status}</small></div><b>${money(o.total)}</b></div></div>`).join(''):'<div class="empty">Todavía no hay pedidos.</div>';
+}
+
+function exportCSV(){
+ const rows=[['PEDIDOS'],['ID Pedido','Fecha entrega','Cliente','Estado','Total'],...db.orders.map(o=>['#'+String(o.orderNumber||0).padStart(2,'0'),o.delivery,o.client,o.status,o.total])];
+ const csv=rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\r\n');
+ const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='NOT_datos.csv';a.click();
+}
+function resetPedidos(){if(confirm('¿Borrar historial de pedidos?')){db.orders=[];save();renderAll();alert('Borrados.');}}
+function resetApp(){if(confirm('¿Borrar TODO?')){localStorage.removeItem(KEY);location.reload()}}
+
+/* --- BALANCE --- */
+function getOrdersInRange(from, to){
+  return db.orders.filter(o=>{
+    const d = o.registeredISO || parseRegistered(o.registered);
+    return d && d>=from && d<=to;
+  });
+}
+function computeBalance(from, to){
+  const orders = getOrdersInRange(from, to);
+  const ventas = orders.reduce((a,o)=>a+(Number(o.total)||0),0);
+  const costos = orders.reduce((a,o)=>a+(Number(o.cost)||0),0);
+  const ganancia = ventas - costos;
+  let hojas = 0;
+  orders.forEach(o=>(o.items||[]).forEach(it=>{ hojas += Number(it.quote && it.quote.materialSheets) || 0; }));
+  const inkMl = hojas*(db.costs.inkMl||0);
+  const inkCost = inkMl/1000*(db.costs.inkPrice||0);
+  const t = db.costs.avgTimePerSheet||0;
+  const kwh = hojas*((db.costs.printerKw||0)/60*t);
+  const luzCost = kwh*(db.costs.electricity||0);
+  let gastado = 0;
+  db.papers.forEach(p=>(p.purchases||[]).forEach(c=>{ if(c.date>=from && c.date<=to) gastado += Number(c.price)||0; }));
+  (db.inkPurchases||[]).forEach(c=>{ if(c.date>=from && c.date<=to) gastado += Number(c.price)||0; });
+  return {ventas, costos, ganancia, hojas, inkMl, inkCost, kwh, luzCost, gastado, orders};
+}
+function dailySeries(from, to, orders){
+  const days=[]; let d=new Date(from+'T00:00:00'); const end=new Date(to+'T00:00:00');
+  if(isNaN(d)||isNaN(end)||d>end) return [];
+  while(d<=end){ days.push({date:d.toISOString().slice(0,10), ventas:0, costos:0, gasto:0}); d.setDate(d.getDate()+1); }
+  const map={}; days.forEach(x=>map[x.date]=x);
+  orders.forEach(o=>{ const key=o.registeredISO||parseRegistered(o.registered); if(map[key]){ map[key].ventas+=Number(o.total)||0; map[key].costos+=Number(o.cost)||0; } });
+  db.papers.forEach(p=>(p.purchases||[]).forEach(c=>{ if(map[c.date]) map[c.date].gasto += Number(c.price)||0; }));
+  (db.inkPurchases||[]).forEach(c=>{ if(map[c.date]) map[c.date].gasto += Number(c.price)||0; });
+  return days;
+}
+function bucketize(days, maxBuckets){
+  maxBuckets = maxBuckets||16;
+  if(!days.length) return [];
+  if(days.length<=maxBuckets) return days.map(x=>({label:x.date.slice(8,10)+'/'+x.date.slice(5,7), ventas:x.ventas, costos:x.costos, gasto:x.gasto}));
+  const size = Math.ceil(days.length/maxBuckets), out=[];
+  for(let i=0;i<days.length;i+=size){
+    const chunk = days.slice(i, i+size);
+    out.push({label: chunk[0].date.slice(8,10)+'/'+chunk[0].date.slice(5,7), ventas: chunk.reduce((a,x)=>a+x.ventas,0), costos: chunk.reduce((a,x)=>a+x.costos,0), gasto: chunk.reduce((a,x)=>a+(x.gasto||0),0)});
+  }
+  return out;
+}
+function svgBarChart(buckets){
+  const w = Math.max(340, buckets.length*54), h=190, pad=8, bottom=26;
+  const maxVal = Math.max(1, ...buckets.map(b=>Math.max(b.ventas,b.costos,b.gasto||0)));
+  const bw = (w-pad)/buckets.length;
+  const gw = bw/3;
+  let bars='', labels='';
+  const step = Math.max(1, Math.ceil(buckets.length/8));
+  buckets.forEach((b,i)=>{
+    const x = pad + i*bw;
+    const gH = (b.ventas/maxVal)*(h-pad-bottom);
+    const cH = (b.costos/maxVal)*(h-pad-bottom);
+    const sH = ((b.gasto||0)/maxVal)*(h-pad-bottom);
+    const baseY = h-bottom;
+    bars += `<rect x="${x+1}" y="${baseY-gH}" width="${gw-2}" height="${gH}" fill="var(--pink)" rx="3"></rect>`;
+    bars += `<rect x="${x+gw+1}" y="${baseY-cH}" width="${gw-2}" height="${cH}" fill="var(--sky)" rx="3"></rect>`;
+    bars += `<rect x="${x+gw*2+1}" y="${baseY-sH}" width="${gw-2}" height="${sH}" fill="var(--yellow)" rx="3"></rect>`;
+    if(i%step===0){ labels += `<text x="${x+bw/2}" y="${h-6}" font-size="9" fill="#77717a" text-anchor="middle">${esc(b.label)}</text>`; }
+  });
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:190px;display:block;min-width:${w}px" preserveAspectRatio="xMinYMid meet">
+    <line x1="${pad}" y1="${h-bottom}" x2="${w}" y2="${h-bottom}" stroke="#e7e1e6" stroke-width="1"></line>
+    ${bars}${labels}
+  </svg>`;
+}
+function computeProductCounts(orders){
+  const counts = {};
+  orders.forEach(o=>(o.items||[]).forEach(it=>{
+    const key = it.name || 'Otro';
+    const qty = Number(it.quote && it.quote.quantity) || 1;
+    counts[key] = (counts[key]||0) + qty;
+  }));
+  return Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([name,count])=>({name,count}));
+}
+function renderProductBars(products){
+  if(!products.length) return '<div class="empty">Sin pedidos en este período.</div>';
+  const colors=['var(--pink)','var(--sky)','var(--yellow)','#a78bda','#7fd9a5','#f2a154'];
+  const max = Math.max(...products.map(p=>p.count));
+  return products.map((p,i)=>`<div style="margin:9px 0">
+    <div class="row" style="margin-bottom:3px"><span style="font-size:13px">${esc(p.name)}</span><b style="font-size:13px">${p.count}</b></div>
+    <div style="background:#eee9ed;border-radius:8px;height:12px;overflow:hidden"><div style="width:${Math.max(4,(p.count/max)*100)}%;height:100%;background:${colors[i%colors.length]};border-radius:8px"></div></div>
+  </div>`).join('');
+}
+function balRange(kind){
+  const now = new Date(); let from, to = new Date();
+  if(kind==='month'){ from = new Date(now.getFullYear(), now.getMonth(), 1); }
+  else if(kind==='lastmonth'){ from = new Date(now.getFullYear(), now.getMonth()-1, 1); to = new Date(now.getFullYear(), now.getMonth(), 0); }
+  else if(kind==='year'){ from = new Date(now.getFullYear(), 0, 1); }
+  else if(kind==='all'){
+    const dates = db.orders.map(o=>o.registeredISO||parseRegistered(o.registered)).filter(Boolean).sort();
+    from = dates.length ? new Date(dates[0]+'T00:00:00') : new Date(now.getFullYear(), now.getMonth(), 1);
+  }
+  $('balDesde').value = from.toISOString().slice(0,10);
+  $('balHasta').value = to.toISOString().slice(0,10);
+  renderBalance();
+}
+function renderBalance(){
+  if(!$('balDesde')) return;
+  if(!$('balDesde').value){ const now=new Date(); $('balDesde').value = new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10); }
+  if(!$('balHasta').value){ $('balHasta').value = new Date().toISOString().slice(0,10); }
+  const from = $('balDesde').value, to = $('balHasta').value;
+  const b = computeBalance(from, to);
+  $('balVentas').textContent = money(b.ventas);
+  $('balCostosStat').textContent = money(b.costos);
+  $('balGanancia').textContent = money(b.ganancia);
+  $('balGastado').textContent = money(b.gastado);
+
+  const buckets = bucketize(dailySeries(from, to, b.orders));
+  $('balChart').innerHTML = buckets.length ? svgBarChart(buckets) : '<div class="empty">Sin datos en este período.</div>';
+
+  const pctCostos = b.ventas>0 ? Math.min(100, (b.costos/b.ventas)*100) : 0;
+  $('balDonut').innerHTML = `<div style="width:130px;height:130px;border-radius:50%;background:conic-gradient(var(--sky) 0% ${pctCostos}%, var(--pink) ${pctCostos}% 100%);display:flex;align-items:center;justify-content:center"><div style="width:80px;height:80px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;text-align:center;padding:4px">${b.ventas>0?Math.round(100-pctCostos)+'%<br>ganancia':'—'}</div></div>`;
+  $('balDonutLegend').innerHTML = `<div style="margin-bottom:6px"><span style="color:var(--sky)">●</span> Costos: ${money(b.costos)}</div><div><span style="color:var(--pink)">●</span> Ganancia: ${money(b.ganancia)}</div>`;
+
+  const products = computeProductCounts(b.orders);
+  $('balProductos').innerHTML = renderProductBars(products);
+
+  $('balDetalle').innerHTML = `
+    <div class="row line"><span>💸 Dinero gastado (compras)</span><b>${money(b.gastado)}</b></div>
+    <div class="row line"><span>🧾 Costos de producción</span><b>${money(b.costos)}</b></div>
+    <div class="row line"><span>📈 Ganancia</span><b>${money(b.ganancia)}</b></div>
+    <div class="row line"><span>📄 Hojas consumidas</span><b>${b.hojas.toFixed(2)} hojas</b></div>
+    <div class="row line"><span>🖋️ Tinta consumida</span><b>${b.inkMl.toFixed(1)} ml (${money(b.inkCost)})</b></div>
+    <div class="row line"><span>💡 Luz consumida</span><b>${b.kwh.toFixed(2)} kWh (${money(b.luzCost)})</b></div>
+  `;
+}
+
+function renderAll(){
+ $('cPapel').innerHTML=db.papers.map((p,i)=>`<option value="${i}">${esc(p.name)}</option>`).join('');
+ renderInicio();renderOrders();renderChoices();renderBuilder();renderPriceInputs();renderInkPurchases();calc();
+ if($('balDesde')) renderBalance();
+}
+
+['cHojas','cTiempo','cHoras','cMinutos','cMargen'].forEach(id=>$(id).addEventListener('input',calc)); $('cPapel').addEventListener('change',calc);
+renderAll();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
