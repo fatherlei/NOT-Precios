@@ -88,10 +88,11 @@ th,td{text-align:left;padding:9px 4px;border-bottom:1px solid var(--line);font-s
 
 nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);z-index:30;box-shadow:0 -4px 16px rgba(36,31,43,.06)}
 nav .navinner{max-width:1050px;margin:auto;display:grid;grid-template-columns:repeat(6,1fr)}
-nav button{background:none;color:var(--muted);border-radius:0;padding:8px 2px;font-size:10px;font-weight:600;box-shadow:none}
+nav button{background:none;color:var(--muted);border-radius:0;padding:7px 2px 8px;font-size:10px;font-weight:700;box-shadow:none;position:relative}
 nav button.active{color:var(--pink-600)}
+nav button.active::before{content:'';position:absolute;top:0;left:25%;right:25%;height:3px;border-radius:0 0 5px 5px;background:linear-gradient(90deg,var(--pink),var(--sky))}
 nav button:active{transform:none}
-nav span{display:block;font-size:18px;margin-bottom:2px}
+nav span{display:flex;align-items:center;justify-content:center;width:34px;height:27px;margin:0 auto 2px;font-size:19px;font-weight:800}
 
 .price-grid{display:grid;grid-template-columns:1fr 150px;gap:8px;align-items:end}
 .section-title{margin-top:24px;padding-bottom:7px;border-bottom:2px solid var(--line);font-family:var(--font-display);font-weight:600;font-size:14px}
@@ -145,37 +146,40 @@ nav span{display:block;font-size:18px;margin-bottom:2px}
       <div><label>Fecha de entrega *</label><input id="pEntrega" type="date"></div>
     </div>
     
-    <div class="card" style="border-color:var(--pink-600); background:var(--pink-50); margin-top:15px">
-      <h3 style="margin-top:0; color:var(--pink-700)">🛒 Carrito de este cliente</h3>
-      <div id="carritoLista"></div>
-      <div class="row" style="margin-top:10px; border-top:2px solid var(--pink-600); padding-top:10px">
-         <b>GRAN TOTAL</b><span id="granTotal" class="big" style="color:var(--pink-700)">$0</span>
-      </div>
-    </div>
+    
 
     <h3>🎨 1. Configurar Artículo</h3><div id="artChoices"></div><div id="builder"></div>
     
     <div class="result"><h3 style="margin-top:0">💰 Cotización de este artículo</h3><div id="quote"></div><div class="row"><b>Subtotal</b><span id="total" class="big">$0</span></div>
+    <label style="margin-top:12px">📝 Detalle / personalización de este artículo</label>
+    <textarea id="itemDetalle" placeholder="Ej: nombre 'Sofi', color dorado, motivo unicornio..." style="min-height:60px"></textarea>
     <button class="yellow" style="width:100%;margin-top:10px;font-size:16px" onclick="addToCart()">➕ Añadir artículo al pedido</button>
     </div>
 
-    <div class="card"><h3 style="margin-top:0">📝 2. Detalles generales</h3>
+    <div class="card"><h3 style="margin-top:0">📝 2. Detalles generales del pedido</h3>
       <div class="form">
         <div><label>Estado del pedido</label>
             <select id="pEstado">
                 <option value="Pendiente">Pendiente</option>
                 <option value="Diseñado">Diseñado</option>
                 <option value="Entregado">Entregado</option>
-                <option value="Cancelado">Cancelado</option>
+                
             </select>
         </div>
         <div><label>Temática</label><input id="pTematica" placeholder="Ej: Bautismo, Anime..."></div>
         <div><label>Medida general</label><input id="pMedida"></div>
         <div><label>Color general</label><input id="pColor"></div>
       </div>
-      <label>Detalles extras para todo el pedido</label><textarea id="pDetalles"></textarea>
+      <label>Notas generales (no específicas de un artículo)</label><textarea id="pDetalles"></textarea>
     </div>
     
+<div class="card" style="border-color:var(--pink-600); background:var(--pink-50); margin-top:15px">
+      <h3 style="margin-top:0; color:var(--pink-700)">🛒 Carrito del pedido</h3>
+      <div id="carritoLista"></div>
+      <div class="row" style="margin-top:10px; border-top:2px solid var(--pink-600); padding-top:10px">
+         <b>GRAN TOTAL</b><span id="granTotal" class="big" style="color:var(--pink-700)">$0</span>
+      </div>
+    </div>
     <div class="actions" style="margin-top:15px">
         <button onclick="guardarPedido()">💾 Guardar Pedido Completo</button>
         <button class="sky" id="btnShare" onclick="compartirActual()" style="display:none">📲 Compartir presupuesto</button>
@@ -191,7 +195,6 @@ nav span{display:block;font-size:18px;margin-bottom:2px}
     <div class="section-title">📄 Precios de toppers</div>
     <div class="price-grid"><label>Hoja A4 · diseño listo</label><input id="priceA" type="number"></div>
     <div class="price-grid"><label>Hoja A4 · diseño personalizado</label><input id="priceB" type="number"></div>
-    <div class="price-grid"><label>💸 Costo material · hoja A4</label><input id="costSheetA4" type="number"></div>
     <div class="price-grid"><label>Hasta 6 unidades · hojas</label><input id="mult6" type="number" step="0.01"></div>
     <div class="price-grid"><label>Hasta 10 unidades · hojas</label><input id="mult10" type="number" step="0.01"></div>
     <div class="price-grid"><label>Topper Simple · multiplicador</label><input id="styleSimple" type="number" step="0.01"></div>
@@ -201,6 +204,12 @@ nav span{display:block;font-size:18px;margin-bottom:2px}
     <div class="price-grid"><label>Nombres / palabras · $ por cm</label><input id="metalNames" type="number"></div>
     <div class="price-grid"><label>Frases, iniciales y números · $ por cm</label><input id="metalPhrases" type="number"></div>
     <div class="price-grid"><label>Figuras especiales · $ por cm</label><input id="metalFigures" type="number"></div>
+    <div class="price-grid"><label>💸 Costo hoja A3 (base para cortar)</label><input id="metalSheetCost" type="number"></div>
+    <div class="price-grid"><label>💸 Costo acetato 40x60cm</label><input id="metalAcetateCost" type="number"></div>
+    <div class="price-grid"><label>👷 Mano de obra metalizado · $/hora</label><input id="metalLabor" type="number"></div>
+    <div class="price-grid"><label>💡 Costo de luz metalizado · $/hora</label><input id="metalElectric" type="number"></div>
+    <div class="price-grid"><label>📈 Ganancia metalizado · %</label><input id="metalProfit" type="number"></div>
+    <small>Cálculo: A3 metalizada ≈ 12 cuadrados de 10×10 cm y acetato 60×80 ≈ 24 cuadrados de 10×10 cm. 10 cm = 1 cuadrado; 12 cm = 1,2; 15 cm = 1,5; 20 cm = 2.</small>
 
     <div class="section-title">➕ Extras</div>
     <div class="price-grid"><label>Topper Premium · $ por hoja</label><input id="premiumPrice" type="number"></div>
@@ -274,7 +283,7 @@ nav span{display:block;font-size:18px;margin-bottom:2px}
   </div>
 
   <div class="card">
-    <h3 style="margin-top:0">🏷️ Pedidos por producto</h3><small>Cantidad vendida de cada producto en el período.</small>
+    <h3 style="margin-top:0">🏷️ Pedidos por producto</h3><small>Cantidad, costo real y ganancia de cada producto en el período.</small>
     <div id="balProductos" style="margin-top:10px"></div>
   </div>
 
@@ -286,7 +295,14 @@ nav span{display:block;font-size:18px;margin-bottom:2px}
 
 <section id="ajustes" class="page">
   <div class="card"><h2>⚙️ Ajustes</h2>
-    <div class="card"><h3 style="margin-top:0">📊 Excel</h3><small>Exporta un archivo CSV compatible con Excel con todos los datos.</small><br><button class="sky" onclick="exportCSV()">📥 Exportar datos</button></div>
+    <div class="card"><h3 style="margin-top:0">📊 Excel</h3><small>Exporta un archivo CSV compatible con Excel con el detalle de artículos vendidos, costos y ganancias.</small><br><button class="sky" onclick="exportCSV()">📥 Exportar datos</button></div>
+    <div class="card"><h3 style="margin-top:0">💾 Copia de seguridad completa</h3><small>Exportá o restaurá TODOS los datos (pedidos, precios, stock, artículos) en un archivo. Útil si cambiás de celular y no querés cargar todo de nuevo.</small><br>
+    <div class="actions" style="margin-top:8px">
+    <button class="sky" onclick="exportJSON()">📤 Exportar copia</button>
+    <button class="soft" onclick="document.getElementById('importFile').click()">📥 Importar copia</button>
+    </div>
+    <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importJSONFile(this)">
+    </div>
     <div class="card"><h3 style="margin-top:0">🧹 Limpiar Pedidos</h3><small>Borra el historial de pedidos pero mantiene todos tus precios y configuraciones.</small><br><button class="yellow" onclick="resetPedidos()">Limpiar pedidos</button></div>
     <div class="card"><h3 style="margin-top:0">♻️ Resetear</h3><small>Borra TODO (pedidos y precios) y vuelve a la configuración inicial de la app.</small><br><button class="danger" onclick="resetApp()">Resetear app completa</button></div>
   </div>
@@ -294,18 +310,18 @@ nav span{display:block;font-size:18px;margin-bottom:2px}
 </main>
 
 <nav><div class="navinner">
-<button data-page="inicio" class="active" onclick="go('inicio')"><span>🏠</span>Inicio</button>
-<button data-page="calculadora" onclick="go('calculadora')"><span>🧮</span>Calculadora</button>
-<button data-page="pedidos" onclick="go('pedidos')"><span>🛍️</span>Pedidos</button>
-<button data-page="costos" onclick="go('costos')"><span>⚙️</span>Costos</button>
-<button data-page="balance" onclick="go('balance')"><span>📊</span>Balance</button>
-<button data-page="ajustes" onclick="go('ajustes')"><span>↗️</span>Ajustes</button>
+<button data-page="inicio" class="active" onclick="go('inicio')"><span>⌂</span>Inicio</button>
+<button data-page="pedidos" onclick="go('pedidos')"><span>▣</span>Pedidos</button>
+<button data-page="costos" onclick="go('costos')"><span>◈</span>Costos</button>
+<button data-page="balance" onclick="go('balance')"><span>◒</span>Balance</button>
+<button data-page="calculadora" onclick="go('calculadora')"><span>＋</span>Calculadora</button>
+<button data-page="ajustes" onclick="go('ajustes')"><span>⚙</span>Ajustes</button>
 </div></nav>
 
 <script>
 const KEY='NOT_FINAL_2026_V5';
 const initial={
-  prices:{A:3500,B:5500,costSheetA4:0,mult6:1,mult10:1.4,simple:1,threeD:2.5,metalNames:400,metalPhrases:600,metalFigures:850,premium:7000,layer:2000,acetate:1000},
+  prices:{A:3500,B:5500,mult6:1,mult10:1.4,simple:1,threeD:2.5,metalNames:400,metalPhrases:600,metalFigures:850,metalSheetCost:0,metalAcetateCost:0,metalLabor:5300,metalElectric:0,metalProfit:0,premium:7000,layer:2000,acetate:1000},
   articles:[
     {name:'Hoja personalizada',price:1500,materialCost:0,desc:'Hoja de papelería personalizada'},
     {name:'Stickers personalizado',price:1800,materialCost:0,desc:'Stickers personalizados'}
@@ -316,7 +332,7 @@ const initial={
   inkPurchases:[]
 };
 let db=JSON.parse(localStorage.getItem(KEY)||'null')||JSON.parse(JSON.stringify(initial));
-db.prices=Object.assign({costSheetA4:0},db.prices||{});
+db.prices=Object.assign({metalSheetCost:0,metalAcetateCost:0,metalLabor:5300,metalElectric:0,metalProfit:0},db.prices||{});
 db.articles=(db.articles||[]).map(a=>Object.assign({materialCost:0},a));
 db.orders=(db.orders||[]).map(o=>Object.assign({cost:0,materialSheets:0},o));
 db.papers=db.papers||[];
@@ -380,8 +396,19 @@ function nuevoPedido(){
     renderAll();
 }
 
-function unitPaper(p){return p.packPrice/Math.max(1,p.packQty)}
+function unitPaper(p){return p?Number(p.packPrice||0)/Math.max(1,Number(p.packQty)||1):0}
 function round2(n){return Math.round(n*100)/100}
+function costBreakdown(paper, sheets){
+  sheets = Number(sheets)||0;
+  const papelC = paper?unitPaper(paper)*sheets:0;
+  const tintaC = (db.costs.inkPrice||0)/1000*(db.costs.inkMl||0)*sheets;
+  const t = db.costs.avgTimePerSheet||0;
+  const elecC = (db.costs.electricity||0)*(db.costs.printerKw||0)/60*t*sheets;
+  const desgasteC = db.costs.printerLife?(db.costs.printerCost||0)/db.costs.printerLife*sheets:0;
+  const otrosC = (db.costs.other||0)*sheets;
+  const parts=[['Papel',papelC],['Tinta',tintaC],['Electricidad',elecC],['Desgaste',desgasteC],['Otros',otrosC]];
+  return {parts, total: parts.reduce((a,x)=>a+x[1],0)};
+}
 function parseRegistered(s){
   if(!s) return null;
   const parts=String(s).split('/');
@@ -450,7 +477,7 @@ function calc(){
 }
 
 function renderPriceInputs(){
- const p=db.prices;[['priceA',p.A],['priceB',p.B],['costSheetA4',p.costSheetA4||0],['mult6',p.mult6],['mult10',p.mult10],['styleSimple',p.simple],['style3d',p.threeD],['metalNames',p.metalNames],['metalPhrases',p.metalPhrases],['metalFigures',p.metalFigures],['premiumPrice',p.premium],['extraLayer',p.layer],['acetatePrice',p.acetate]].forEach(([id,v])=>$(id).value=v);
+ const p=db.prices;[['priceA',p.A],['priceB',p.B],['mult6',p.mult6],['mult10',p.mult10],['styleSimple',p.simple],['style3d',p.threeD],['metalNames',p.metalNames],['metalPhrases',p.metalPhrases],['metalFigures',p.metalFigures],['metalSheetCost',p.metalSheetCost||0],['metalAcetateCost',p.metalAcetateCost||0],['metalLabor',p.metalLabor||5300],['metalElectric',p.metalElectric||0],['metalProfit',p.metalProfit||0],['premiumPrice',p.premium],['extraLayer',p.layer],['acetatePrice',p.acetate]].forEach(([id,v])=>$(id).value=v);
  document.querySelectorAll('.cost').forEach(i=>i.value=db.costs[i.dataset.k]);
  $('artEditor').innerHTML=db.articles.map((a,i)=>`<div class="card"><div class="form"><div><label>Artículo</label><input class="an" data-i="${i}" value="${esc(a.name)}"></div><div><label>Precio unitario</label><input class="ap" data-i="${i}" type="number" value="${a.price}"></div><div><label>Costo material</label><input class="ac" data-i="${i}" type="number" value="${a.materialCost||0}"></div><div><label>Descripción</label><input class="ad" data-i="${i}" value="${esc(a.desc)}"></div><div><label>Papel asociado (para descontar stock)</label><select class="apap" data-i="${i}"><option value="">Ninguno</option>${db.papers.map(p=>`<option value="${p.id}" ${a.paperId===p.id?'selected':''}>${esc(p.name)}</option>`).join('')}</select></div></div><br><button class="danger" onclick="deleteArticle(${i})">Eliminar artículo</button></div>`).join('');
  $('paperEditor').innerHTML=db.papers.map((p,i)=>`<div class="card">
@@ -472,7 +499,7 @@ function renderPriceInputs(){
  </div>`).join('');
 }
 function guardarCostos(){
- const p=db.prices;p.A=+$('priceA').value;p.B=+$('priceB').value;p.costSheetA4=+$('costSheetA4').value;p.mult6=+$('mult6').value;p.mult10=+$('mult10').value;p.simple=+$('styleSimple').value;p.threeD=+$('style3d').value;p.metalNames=+$('metalNames').value;p.metalPhrases=+$('metalPhrases').value;p.metalFigures=+$('metalFigures').value;p.premium=+$('premiumPrice').value;p.layer=+$('extraLayer').value;p.acetate=+$('acetatePrice').value;
+ const p=db.prices;p.A=+$('priceA').value;p.B=+$('priceB').value;p.mult6=+$('mult6').value;p.mult10=+$('mult10').value;p.simple=+$('styleSimple').value;p.threeD=+$('style3d').value;p.metalNames=+$('metalNames').value;p.metalPhrases=+$('metalPhrases').value;p.metalFigures=+$('metalFigures').value;p.metalSheetCost=+$('metalSheetCost').value;p.metalAcetateCost=+$('metalAcetateCost').value;p.metalLabor=+$('metalLabor').value;p.metalElectric=+$('metalElectric').value;p.metalProfit=+$('metalProfit').value;p.premium=+$('premiumPrice').value;p.layer=+$('extraLayer').value;p.acetate=+$('acetatePrice').value;
  document.querySelectorAll('.cost').forEach(i=>db.costs[i.dataset.k]=+i.value||0);
  document.querySelectorAll('.an').forEach(i=>db.articles[i.dataset.i].name=i.value);document.querySelectorAll('.ap').forEach(i=>db.articles[i.dataset.i].price=+i.value||0);document.querySelectorAll('.ac').forEach(i=>db.articles[i.dataset.i].materialCost=+i.value||0);document.querySelectorAll('.ad').forEach(i=>db.articles[i.dataset.i].desc=i.value);document.querySelectorAll('.apap').forEach(i=>db.articles[i.dataset.i].paperId=i.value?+i.value:null);
  document.querySelectorAll('.pn').forEach(i=>db.papers[i.dataset.i].name=i.value);document.querySelectorAll('.pp').forEach(i=>db.papers[i.dataset.i].packPrice=+i.value||0);document.querySelectorAll('.pq').forEach(i=>db.papers[i.dataset.i].packQty=+i.value||1);document.querySelectorAll('.pst').forEach(i=>db.papers[i.dataset.i].stock=+i.value||0);
@@ -497,13 +524,15 @@ function selectProduct(x){selected=x;renderChoices();renderBuilder()}
 function topperSheets(){if(topper.mode==='6')return db.prices.mult6;if(topper.mode==='10')return db.prices.mult10;const q=Math.max(1,topper.qty);return q<=6?q/6:q<=10?db.prices.mult10:q/8}
 function topperQuote(){
  const sheets=topperSheets(),base=sheets*(topper.type==='A'?db.prices.A:db.prices.B);
- let total=base,cost=sheets*(db.prices.costSheetA4||0);
+ const paperSel=db.papers.find(p=>p.id===topper.paperId);
+ const cb=costBreakdown(paperSel,sheets);
+ let total=base,cost=cb.total;
  let lines=[['Base A4',`${sheets.toFixed(2)} hojas`,base]];
  if(topper.style==='3d'){const add=base*(db.prices.threeD-1);total+=add;lines.push(['Topper 3D',`×${db.prices.threeD}`,add])}
  if(topper.type==='B'&&topper.premium){const v=sheets*db.prices.premium;total+=v;lines.push(['Premium',`${sheets.toFixed(2)} hojas`,v])}
  if(topper.type==='B'&&topper.layer){const v=sheets*db.prices.layer;total+=v;lines.push(['Capa extra',`${sheets.toFixed(2)} hojas`,v])}
  if(topper.type==='B'&&topper.acetate){total+=db.prices.acetate;lines.push(['Acetato','Parte transparente',db.prices.acetate])}
- return {total,cost,materialSheets:sheets,lines,quantity:topper.mode==='exact'?topper.qty:topper.mode==='6'?6:10}
+ return {total,cost,costParts:cb.parts,materialSheets:sheets,lines,quantity:topper.mode==='exact'?topper.qty:topper.mode==='6'?6:10}
 }
 function renderBuilder(){
  if(!selected){$('builder').innerHTML='<div class="notice">Seleccioná un artículo de arriba.</div>';updateQuote();return}
@@ -555,16 +584,40 @@ function setTop(k,v){topper[k]=v;renderBuilder()}
 function currentQty(){return Number(window.currentArticleQty||1)}
 function currentQuote(){
  if(selected==='topper')return topperQuote();
- if(selected==='metal'){const cm=metal.size==='custom'?metal.custom:+metal.size;const r=metal.type==='names'?db.prices.metalNames:metal.type==='phrases'?db.prices.metalPhrases:db.prices.metalFigures;return {total:cm*r,lines:[['Metalizado',`${cm} cm`,cm*r]],quantity:1}}
+ if(selected==='metal'){
+   const cm=metal.size==='custom'?Number(metal.custom):Number(metal.size);
+   const r=metal.type==='names'?Number(db.prices.metalNames||0):metal.type==='phrases'?Number(db.prices.metalPhrases||0):Number(db.prices.metalFigures||0);
+   const factor=cm/10;
+   const sheetCost=(Number(db.prices.metalSheetCost)||0)/12*factor;
+   const acetateCost=(Number(db.prices.metalAcetateCost)||0)/24*factor;
+   const materialCost=sheetCost+acetateCost;
+   return {total:cm*r,cost:materialCost,
+     lines:[['Metalizada A3',`${cm} cm · ${factor.toFixed(2)} cuadrado(s)`,sheetCost],
+            ['Acetato 60×80',`${cm} cm · ${factor.toFixed(2)} cuadrado(s)`,acetateCost]],
+     quantity:1}
+  }
  if(selected==='free'){
   const paper=db.papers.find(p=>p.id===freeArt.paperId);
-  const cost=paper?freeArt.sheets*unitPaper(paper):0;
-  return {total:freeArt.price, cost, materialSheets:freeArt.sheets, lines:[[freeArt.name||'Artículo libre', paper?`${freeArt.sheets} hojas · ${esc(paper.name)}`:`${freeArt.sheets} hojas`, freeArt.price]], quantity:1};
+  const cb=costBreakdown(paper,freeArt.sheets);
+  return {total:freeArt.price, cost:cb.total, costParts:cb.parts, materialSheets:freeArt.sheets, lines:[[freeArt.name||'Artículo libre', paper?`${freeArt.sheets} hojas · ${esc(paper.name)}`:`${freeArt.sheets} hojas`, freeArt.price]], quantity:1};
  }
  if(selected&&selected.startsWith('article:')){const a=db.articles[+selected.split(':')[1]],q=Number($('artQty')?.value||window.currentArticleQty||1);window.currentArticleQty=q;return {total:a.price*q,cost:(a.materialCost||0)*q,materialSheets:q,lines:[[a.name,`${q} unidad(es)`,a.price*q]],quantity:q}}
  return {total:0,lines:[]}
 }
-function updateQuote(){const q=currentQuote();$('quote').innerHTML=q.lines.length?q.lines.map(x=>`<div class="row line"><span>${esc(x[0])}<br><small>${esc(x[1])}</small></span><b>${money(x[2])}</b></div>`).join(''):'<div class="empty">Seleccioná un artículo.</div>';$('total').textContent=money(q.total); if($('quote')) $('quote').insertAdjacentHTML('beforeend', `<div class="row line"><span>🧾 Costo material</span><b>${money(q.cost||0)}</b></div>`)}
+function updateQuote(){
+ const q=currentQuote();
+ $('quote').innerHTML=q.lines.length?q.lines.map(x=>`<div class="row line"><span>${esc(x[0])}<br><small>${esc(x[1])}</small></span><b>${money(x[2])}</b></div>`).join(''):'<div class="empty">Seleccioná un artículo.</div>';
+ $('total').textContent=money(q.total);
+ if($('quote')){
+   if(q.costParts && q.costParts.length){
+     $('quote').insertAdjacentHTML('beforeend', `<div class="section-title" style="margin-top:14px;font-size:12px;border-color:#e6e0e5">💰 Costo real</div>`
+       + q.costParts.map(x=>`<div class="row line"><span>${esc(x[0])}</span><b>${money(x[1])}</b></div>`).join('')
+       + `<div class="row" style="margin-top:6px"><b>COSTO REAL</b><b>${money(q.cost||0)}</b></div>`);
+   }else{
+     $('quote').insertAdjacentHTML('beforeend', `<div class="row line"><span>🧾 Costo material</span><b>${money(q.cost||0)}</b></div>`);
+   }
+ }
+}
 
 /* --- CARRITO --- */
 function addToCart(){
@@ -576,9 +629,11 @@ function addToCart(){
   if(selected === 'metal') itemName = "Topper Metal";
   if(selected==='free'){ itemName = freeArt.name.trim(); paperId = freeArt.paperId; }
   if(selected.startsWith('article:')){ const a = db.articles[+selected.split(':')[1]]; itemName = a.name; paperId = (typeof a.paperId!=='undefined')?a.paperId:null; }
+  const detail = ($('itemDetalle').value||'').trim();
 
-  currentCart.push({name: itemName, type: selected, paperId, topper: selected==='topper'?clone(topper):null, metal: selected==='metal'?clone(metal):null, quote: q});
+  currentCart.push({name: itemName, type: selected, paperId, detail, topper: selected==='topper'?clone(topper):null, metal: selected==='metal'?clone(metal):null, quote: q});
   if(selected==='free'){ freeArt={name:'',price:0,sheets:1,paperId:(db.papers[0]?db.papers[0].id:null)}; }
+  $('itemDetalle').value='';
   renderCarrito(); selected=null; renderChoices(); renderBuilder();
 }
 
@@ -591,6 +646,7 @@ function renderCarrito(){
     return `<div class="row line">
       <div style="font-size:13px; width:100%"><b style="color:var(--pink-700)">▶ ${esc(item.name)}</b><br>
       ${item.quote.lines.map(l => `• ${esc(l[0])}${l[1]?` (${esc(l[1])})`:''}: ${money(l[2])}`).join('<br>')}
+      ${item.detail?`<br><span style="color:var(--muted)">📝 ${esc(item.detail)}</span>`:''}
       </div><div style="text-align:right"><b class="big" style="display:block;margin-bottom:4px">${money(item.quote.total)}</b>
       <button class="danger" style="padding:5px 9px;font-size:11px" onclick="removeFromCart(${i})">Borrar</button></div>
     </div>`;
@@ -645,7 +701,7 @@ function textOrder(o){
     if(item.type === 'topper') emoji = '🎂';
     else if(item.type === 'metal') emoji = '✨';
     else emoji = '🏷️';
-    return `${emoji} *Artículo ${i+1}: ${esc(item.name)}*\n` + item.quote.lines.map(x => `  • ${x[0]}${x[1]?` (${x[1]})`:''}: *${money(x[2])}*`).join('\n');
+    return `${emoji} *Artículo ${i+1}: ${esc(item.name)}*\n` + item.quote.lines.map(x => `  • ${x[0]}${x[1]?` (${x[1]})`:''}: *${money(x[2])}*`).join('\n') + (item.detail?`\n  📝 ${esc(item.detail)}`:'');
   }).join('\n\n');
   
   return `✨ *NOT — Presupuesto* ✨\n\n🔖 *Pedido:* #${String(o.orderNumber||0).padStart(2,'0')}\n👤 *Cliente:* ${o.client}${o.phone?`\n📱 *Tel:* ${o.phone}`:''}\n📅 *Entrega:* ${o.delivery?o.delivery.split('-').reverse().join('/'):'A confirmar'}\n\n${itemsText}\n\n${o.tematica?`🎉 *Temática:* ${o.tematica}\n`:''}${o.measure?`📏 *Medida general:* ${o.measure}\n`:''}${o.color?`🎨 *Color general:* ${o.color}\n`:''}${o.details?`📝 *Detalles:* ${o.details}\n`:''}\n💰 *TOTAL:* *${money(o.total)}*\n\nGracias por elegir NOT 💖`;
@@ -672,12 +728,70 @@ function renderInicio(){
 }
 
 function exportCSV(){
- const rows=[['PEDIDOS'],['ID Pedido','Fecha entrega','Cliente','Estado','Total'],...db.orders.map(o=>['#'+String(o.orderNumber||0).padStart(2,'0'),o.delivery,o.client,o.status,o.total])];
+ const hoy = new Date().toLocaleDateString('es-AR');
+ const rows=[];
+
+ rows.push(['COSTOS DE REFERENCIA · al '+hoy]);
+ rows.push(['Papel','Costo por hoja','Stock actual']);
+ db.papers.forEach(p=>rows.push([p.name, round2(unitPaper(p)), p.stock||0]));
+ rows.push([]);
+ rows.push(['Tinta $/litro', db.costs.inkPrice||0]);
+ rows.push(['Consumo tinta ml/hoja', db.costs.inkMl||0]);
+ rows.push(['Electricidad $/kWh', db.costs.electricity||0]);
+ rows.push(['Consumo impresora kW', db.costs.printerKw||0]);
+ rows.push(['Costo impresora', db.costs.printerCost||0]);
+ rows.push(['Vida útil en hojas', db.costs.printerLife||0]);
+ rows.push(['Otros $/hoja', db.costs.other||0]);
+ rows.push(['Tiempo prom. impresión por hoja (min)', db.costs.avgTimePerSheet||0]);
+ rows.push(['Valor hora de trabajo', db.costs.hour||0]);
+ rows.push(['Margen predeterminado %', db.costs.margin||0]);
+ rows.push(['Costo hoja A3 Metalizado', db.prices.metalSheetCost||0]);
+ rows.push(['Costo acetato 40x60cm', db.prices.metalAcetateCost||0]);
+ rows.push([]);
+
+ rows.push(['ARTÍCULOS VENDIDOS']);
+ rows.push(['Artículo','Cliente','Pedido','Fecha entrega','Fecha registrado','Estado','Cantidad','Precio','Costo real','Ganancia','% Ganancia','Detalle']);
+ db.orders.forEach(o=>{
+   (o.items||[]).forEach(it=>{
+     const price = Number(it.quote && it.quote.total) || 0;
+     const cost = Number(it.quote && it.quote.cost) || 0;
+     const profit = price - cost;
+     const pct = price>0 ? round2(profit/price*100) : 0;
+     rows.push([it.name, o.client, '#'+String(o.orderNumber||0).padStart(2,'0'), o.delivery, o.registered, o.status, (it.quote&&it.quote.quantity)||1, round2(price), round2(cost), round2(profit), pct, it.detail||'']);
+   });
+ });
+ rows.push([]);
+
+ rows.push(['RESUMEN DE PEDIDOS']);
+ rows.push(['ID Pedido','Fecha entrega','Cliente','Estado','Total','Costo','Ganancia']);
+ db.orders.forEach(o=>rows.push(['#'+String(o.orderNumber||0).padStart(2,'0'), o.delivery, o.client, o.status, round2(o.total), round2(o.cost), round2((o.total||0)-(o.cost||0))]));
+
  const csv=rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\r\n');
- const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='NOT_datos.csv';a.click();
+ const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='NOT_datos_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
 }
 function resetPedidos(){if(confirm('¿Borrar historial de pedidos?')){db.orders=[];save();renderAll();alert('Borrados.');}}
 function resetApp(){if(confirm('¿Borrar TODO?')){localStorage.removeItem(KEY);location.reload()}}
+function exportJSON(){
+ const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='NOT_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();
+}
+function importJSONFile(input){
+ const file=input.files[0]; if(!file) return;
+ const reader=new FileReader();
+ reader.onload=function(e){
+   try{
+     const data=JSON.parse(e.target.result);
+     if(!data||typeof data!=='object'||!('papers' in data)) throw new Error('Formato inválido');
+     if(!confirm('Esto va a REEMPLAZAR todos los datos actuales (pedidos, precios, stock) con los del archivo. ¿Continuar?')) return;
+     db=data; save(); renderAll();
+     alert('Datos importados correctamente.');
+   }catch(err){
+     alert('No se pudo leer el archivo. Asegurate de que sea un backup válido de NOT.');
+   }
+ };
+ reader.readAsText(file);
+ input.value='';
+}
 
 /* --- BALANCE --- */
 function getOrdersInRange(from, to){
@@ -748,21 +862,25 @@ function svgBarChart(buckets){
   </svg>`;
 }
 function computeProductCounts(orders){
-  const counts = {};
+  const map = {};
   orders.forEach(o=>(o.items||[]).forEach(it=>{
     const key = it.name || 'Otro';
     const qty = Number(it.quote && it.quote.quantity) || 1;
-    counts[key] = (counts[key]||0) + qty;
+    const revenue = Number(it.quote && it.quote.total) || 0;
+    const cost = Number(it.quote && it.quote.cost) || 0;
+    if(!map[key]) map[key] = {name:key, count:0, revenue:0, cost:0};
+    map[key].count += qty; map[key].revenue += revenue; map[key].cost += cost;
   }));
-  return Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([name,count])=>({name,count}));
+  return Object.values(map).sort((a,b)=>b.revenue-a.revenue).map(p=>({...p, profit:p.revenue-p.cost}));
 }
 function renderProductBars(products){
   if(!products.length) return '<div class="empty">Sin pedidos en este período.</div>';
   const colors=['var(--pink)','var(--sky)','var(--yellow)','#a78bda','#7fd9a5','#f2a154'];
   const max = Math.max(...products.map(p=>p.count));
-  return products.map((p,i)=>`<div style="margin:9px 0">
-    <div class="row" style="margin-bottom:3px"><span style="font-size:13px">${esc(p.name)}</span><b style="font-size:13px">${p.count}</b></div>
-    <div style="background:#eee9ed;border-radius:8px;height:12px;overflow:hidden"><div style="width:${Math.max(4,(p.count/max)*100)}%;height:100%;background:${colors[i%colors.length]};border-radius:8px"></div></div>
+  return products.map((p,i)=>`<div style="margin:12px 0;padding-bottom:11px;border-bottom:1px solid var(--line)">
+    <div class="row" style="margin-bottom:4px"><span style="font-size:13px;font-weight:600">${esc(p.name)}</span><b style="font-size:13px">${p.count} u.</b></div>
+    <div style="background:#eee9ed;border-radius:8px;height:10px;overflow:hidden;margin-bottom:7px"><div style="width:${Math.max(4,(p.count/max)*100)}%;height:100%;background:${colors[i%colors.length]};border-radius:8px"></div></div>
+    <div class="row" style="font-size:11.5px;color:var(--muted)"><span>Costo real: ${money(p.cost)}</span><span>Ganancia: ${money(p.profit)}</span></div>
   </div>`).join('');
 }
 function balRange(kind){
