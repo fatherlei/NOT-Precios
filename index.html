@@ -22,7 +22,7 @@
   --yellow:#fdce43;--yellow-700:#6b4c06;--yellow-50:#fff9e6;
   --green:#3fb87f;--green-700:#1f6b48;--green-50:#eafaf3;
   --red:#ef5875;--red-700:#a22b46;--red-50:#fdeaf0;
-  --bg:#faf7f4;--surface:#fff;--ink:#241f2b;--muted:#8b8391;--line:#ece5ea;
+  --bg:#f7f6f8;--surface:#fff;--ink:#241f2b;--muted:#8b8391;--line:#ece5ea;
   --r-sm:10px;--r-md:14px;--r-lg:18px;--r-pill:999px;
   --shadow-sm:0 1px 3px rgba(36,31,43,.06);
   --shadow-md:0 6px 20px rgba(36,31,43,.09);
@@ -36,22 +36,24 @@ header{position:sticky;top:0;z-index:20;background:#fff;border-bottom:3px solid;
 .logo{width:104px;height:50px;object-fit:contain}
 .brand{font-family:var(--font-display);font-weight:700;font-size:21px;letter-spacing:.2px}
 .muted,small{color:var(--muted);font-size:12.5px}
-main{max-width:1050px;margin:auto;padding:14px 14px 100px}
+main{max-width:1050px;margin:auto;padding:12px 12px 88px}
 .page{display:none}.page.active{display:block;animation:fadein .25s ease}
 @keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.stat,.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px;margin:10px 0;box-shadow:var(--shadow-sm)}
-.stat{position:relative;overflow:hidden;padding-top:15px}
-.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--line)}
-.stat.acc-pink::before{background:var(--pink)}.stat.acc-sky::before{background:var(--sky)}
-.stat.acc-yellow::before{background:var(--yellow)}.stat.acc-green::before{background:var(--green)}
-.stat.acc-ink::before{background:var(--ink)}
-.stat strong{display:block;font-family:var(--font-display);font-size:23px;font-weight:700;margin-top:4px}
-.stat small{text-transform:uppercase;font-size:10.5px;font-weight:600;letter-spacing:.4px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.stat,.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:11px 13px;margin:6px 0;box-shadow:var(--shadow-sm)}
+.stat{position:relative;overflow:hidden}
+.stat-ico{width:24px;height:24px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;margin:0;background:#f1eef2;flex:0 0 24px}
+.stat.acc-pink .stat-ico{background:var(--pink-50)}.stat.acc-sky .stat-ico{background:var(--sky-50)}
+.stat.acc-yellow .stat-ico{background:var(--yellow-50)}.stat.acc-green .stat-ico{background:var(--green-50)}
+.stat.acc-red .stat-ico{background:var(--red-50)}.stat.acc-ink .stat-ico{background:#f1eef2}
+.stat strong{display:flex;align-items:baseline;gap:5px;font-family:var(--font-display);font-size:18px;font-weight:700;margin:0}
+.stat small{text-transform:uppercase;font-size:9.5px;font-weight:600;letter-spacing:.35px;color:var(--muted)}
+.trend{font-size:14px;font-weight:800}
+.trend.up{color:var(--green-700)}.trend.down{color:var(--red-700)}
 
-h2{font-family:var(--font-display);font-size:19px;font-weight:700;margin:0 0 4px}
-h3{font-family:var(--font-display);font-size:15px;font-weight:600;margin:16px 0 8px}
+h2{font-family:var(--font-display);font-size:18px;font-weight:700;margin:0 0 3px}
+h3{font-family:var(--font-display);font-size:14.5px;font-weight:600;margin:12px 0 7px}
 .row{display:flex;justify-content:space-between;align-items:center;gap:9px}
 .actions{display:flex;gap:8px;flex-wrap:wrap}
 
@@ -85,6 +87,8 @@ th,td{text-align:left;padding:9px 4px;border-bottom:1px solid var(--line);font-s
 
 .order{border:1px solid var(--line);border-radius:var(--r-lg);padding:13px;margin:9px 0;background:#fff;cursor:pointer;transition:box-shadow .15s ease,border-color .15s ease}
 .order:hover{border-color:#d8d0d6;box-shadow:var(--shadow-md)}
+.paidBadge{background:#f3eef2;color:#57515a;font-size:11px;padding:6px 11px;border-radius:999px;box-shadow:none;font-weight:700}
+.paidBadge.is-paid{background:var(--green-50);color:var(--green-700)}
 
 nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);z-index:30;box-shadow:0 -4px 16px rgba(36,31,43,.06)}
 nav .navinner{max-width:1050px;margin:auto;display:grid;grid-template-columns:repeat(6,1fr)}
@@ -96,7 +100,19 @@ nav span{display:flex;align-items:center;justify-content:center;width:34px;heigh
 
 .price-grid{display:grid;grid-template-columns:1fr 150px;gap:8px;align-items:end}
 .section-title{margin-top:24px;padding-bottom:7px;border-bottom:2px solid var(--line);font-family:var(--font-display);font-weight:600;font-size:14px}
-@media(min-width:720px){.grid{grid-template-columns:repeat(4,1fr)}.form{grid-template-columns:repeat(3,1fr)}nav{position:sticky;top:0;bottom:auto;box-shadow:var(--shadow-sm)}}
+
+details{border-bottom:1px solid var(--line);margin-top:4px}
+details:first-of-type{margin-top:0}
+details summary{cursor:pointer;list-style:none;padding:12px 2px;font-family:var(--font-display);font-weight:600;font-size:14px;display:flex;justify-content:space-between;align-items:center}
+details summary::-webkit-details-marker{display:none}
+details summary::after{content:'▾';color:var(--muted);font-size:12px;transition:transform .15s ease}
+details[open] summary::after{transform:rotate(180deg)}
+details .acc-body{padding:2px 2px 16px}
+
+.minicart{position:fixed;left:12px;right:12px;bottom:74px;z-index:25;background:var(--ink);color:#fff;border-radius:var(--r-md);padding:12px 16px;display:none;justify-content:space-between;align-items:center;font-family:var(--font-body);font-size:13px;font-weight:600;box-shadow:var(--shadow-md);cursor:pointer;max-width:1026px;margin:0 auto}
+.minicart span:last-child{color:var(--yellow);font-weight:700}
+
+@media(min-width:720px){.grid{grid-template-columns:repeat(4,1fr)}.form{grid-template-columns:repeat(3,1fr)}nav{position:sticky;top:0;bottom:auto;box-shadow:var(--shadow-sm)}.minicart{bottom:16px}}
 </style>
 </head>
 <body>
@@ -108,10 +124,18 @@ nav span{display:flex;align-items:center;justify-content:center;width:34px;heigh
 <main>
 <section id="inicio" class="page active">
   <div class="grid">
-    <div class="stat acc-pink"><small>Ventas activas</small><strong id="sVentas">$0</strong></div>
-    <div class="stat acc-sky"><small>Costos</small><strong id="sCostos">$0</strong></div>
-    <div class="stat acc-green"><small>Ganancias</small><strong id="sGanancias">$0</strong></div>
-    <div class="stat acc-ink"><small>Pedidos activos</small><strong id="sActivos">0</strong></div>
+    <div class="stat acc-pink" style="display:flex;align-items:center;gap:9px">
+      <div class="stat-ico">💰</div><div style="min-width:0"><small>Ventas activas</small><strong id="sVentas">$0</strong></div>
+    </div>
+    <div class="stat acc-sky" style="display:flex;align-items:center;gap:9px">
+      <div class="stat-ico">🧾</div><div style="min-width:0"><small>Costos</small><strong id="sCostos">$0</strong></div>
+    </div>
+    <div class="stat acc-green" id="statGanancias" style="display:flex;align-items:center;gap:9px">
+      <div class="stat-ico" id="sGananciasIco">📈</div><div style="min-width:0"><small>Ganancias</small><strong id="sGanancias">$0<span class="trend" id="sGananciasTrend"></span></strong></div>
+    </div>
+    <div class="stat acc-ink" style="display:flex;align-items:center;gap:9px">
+      <div class="stat-ico">🛍️</div><div style="min-width:0"><small>Pedidos activos</small><strong id="sActivos">0</strong></div>
+    </div>
   </div>
   <div class="card">
     <div class="row"><div><h2>📦 Stock de papeles</h2><small>Se descuenta solo al guardar un pedido.</small></div><button class="soft" onclick="go('costos')">Registrar compra</button></div>
@@ -120,6 +144,7 @@ nav span{display:flex;align-items:center;justify-content:center;width:34px;heigh
   <div class="card">
     <div class="row"><div><h2>📋 Pedidos registrados</h2><small>Hacé click en un pedido para editarlo.</small></div><button onclick="go('pedidos')">+ Pedido</button></div>
     <div id="inicioPedidos"></div>
+    <button id="inicioVerTodos" class="soft" style="width:100%;margin-top:8px;display:none" onclick="go('pedidos')">Ver todos los pedidos →</button>
   </div>
 </section>
 
@@ -141,7 +166,7 @@ nav span{display:flex;align-items:center;justify-content:center;width:34px;heigh
   <div class="card">
     <div class="row"><div><h2 id="pedidoTitulo">🛍️ Nuevo pedido</h2><small>Armá el carrito del cliente.</small></div><button class="soft" onclick="nuevoPedido()">Limpiar form</button></div>
     <div class="form">
-      <div><label>Nombre del Cliente *</label><input id="pNombre"></div>
+      <div><label>Nombre del Cliente *</label><input id="pNombre" list="clientesList"><datalist id="clientesList"></datalist></div>
       <div><label>Teléfono</label><input id="pTelefono"></div>
       <div><label>Fecha de entrega *</label><input id="pEntrega" type="date"></div>
     </div>
@@ -173,12 +198,14 @@ nav span{display:flex;align-items:center;justify-content:center;width:34px;heigh
       <label>Notas generales (no específicas de un artículo)</label><textarea id="pDetalles"></textarea>
     </div>
     
-<div class="card" style="border-color:var(--pink-600); background:var(--pink-50); margin-top:15px">
+<div class="card" id="carritoBox" style="border-color:var(--pink-600); background:var(--pink-50); margin-top:15px">
       <h3 style="margin-top:0; color:var(--pink-700)">🛒 Carrito del pedido</h3>
       <div id="carritoLista"></div>
+      <div><label>💵 Seña / adelanto recibido</label><input id="pSena" type="number" min="0" value="0" oninput="renderCarrito()"></div>
       <div class="row" style="margin-top:10px; border-top:2px solid var(--pink-600); padding-top:10px">
          <b>GRAN TOTAL</b><span id="granTotal" class="big" style="color:var(--pink-700)">$0</span>
       </div>
+      <div class="row" id="senaRow" style="display:none;margin-top:2px"><small>Seña recibida: <b id="senaMonto"></b></small><small>Falta pagar: <b id="faltaMonto"></b></small></div>
     </div>
     <div class="actions" style="margin-top:15px">
         <button onclick="guardarPedido()">💾 Guardar Pedido Completo</button>
@@ -186,21 +213,25 @@ nav span{display:flex;align-items:center;justify-content:center;width:34px;heigh
         <button class="danger" id="btnEliminarPedido" onclick="eliminarPedido()" style="display:none;">🗑️ Eliminar Pedido</button>
     </div>
   </div>
-  <div class="card"><h2>📅 Todos los pedidos</h2><div id="pedidosLista"></div></div>
+  <div class="card"><h2>📅 Todos los pedidos</h2>
+    <input id="pedidosBuscar" placeholder="🔎 Buscar por cliente o N° de pedido..." oninput="renderOrders()" style="margin-bottom:4px">
+    <div id="pedidosLista"></div>
+  </div>
 </section>
 
 <section id="costos" class="page">
   <div class="card"><div class="row"><div><h2>⚙️ Costos y precios</h2><small>Todo es editable y queda guardado.</small></div><div class="actions"><button class="sky" onclick="nuevoPedido();go('pedidos')">🛍️ Crear pedido</button><button onclick="guardarCostos()">Guardar</button></div></div>
 
-    <div class="section-title">📄 Precios de toppers</div>
+    <details><summary>📄 Precios de toppers</summary><div class="acc-body">
     <div class="price-grid"><label>Hoja A4 · diseño listo</label><input id="priceA" type="number"></div>
     <div class="price-grid"><label>Hoja A4 · diseño personalizado</label><input id="priceB" type="number"></div>
     <div class="price-grid"><label>Hasta 6 unidades · hojas</label><input id="mult6" type="number" step="0.01"></div>
     <div class="price-grid"><label>Hasta 10 unidades · hojas</label><input id="mult10" type="number" step="0.01"></div>
     <div class="price-grid"><label>Topper Simple · multiplicador</label><input id="styleSimple" type="number" step="0.01"></div>
     <div class="price-grid"><label>Topper 3D · multiplicador</label><input id="style3d" type="number" step="0.01"></div>
+    </div></details>
 
-    <div class="section-title">✨ Topper Metalizado Personalizado</div>
+    <details><summary>✨ Topper Metalizado Personalizado</summary><div class="acc-body">
     <div class="price-grid"><label>Nombres / palabras · $ por cm</label><input id="metalNames" type="number"></div>
     <div class="price-grid"><label>Frases, iniciales y números · $ por cm</label><input id="metalPhrases" type="number"></div>
     <div class="price-grid"><label>Figuras especiales · $ por cm</label><input id="metalFigures" type="number"></div>
@@ -210,16 +241,19 @@ nav span{display:flex;align-items:center;justify-content:center;width:34px;heigh
     <div class="price-grid"><label>💡 Costo de luz metalizado · $/hora</label><input id="metalElectric" type="number"></div>
     <div class="price-grid"><label>📈 Ganancia metalizado · %</label><input id="metalProfit" type="number"></div>
     <small>Cálculo: A3 metalizada ≈ 12 cuadrados de 10×10 cm y acetato 60×80 ≈ 24 cuadrados de 10×10 cm. 10 cm = 1 cuadrado; 12 cm = 1,2; 15 cm = 1,5; 20 cm = 2.</small>
+    </div></details>
 
-    <div class="section-title">➕ Extras</div>
+    <details><summary>➕ Extras</summary><div class="acc-body">
     <div class="price-grid"><label>Topper Premium · $ por hoja</label><input id="premiumPrice" type="number"></div>
     <div class="price-grid"><label>Capa extra · $ por hoja</label><input id="extraLayer" type="number"></div>
     <div class="price-grid"><label>Acetato</label><input id="acetatePrice" type="number"></div>
+    </div></details>
 
-    <div class="section-title">🧁 Artículos adicionales</div>
+    <details><summary>🧁 Artículos adicionales</summary><div class="acc-body">
     <div id="artEditor"></div><button class="soft" onclick="addArticle()">＋ Agregar artículo</button>
+    </div></details>
 
-    <div class="section-title">📦 Costos reales</div>
+    <details><summary>📦 Costos reales</summary><div class="acc-body">
     <div class="form">
       <div><label>Tinta $/litro</label><input class="cost" data-k="inkPrice" type="number"></div>
       <div><label>Consumo tinta ml/hoja</label><input class="cost" data-k="inkMl" type="number"></div>
@@ -232,8 +266,9 @@ nav span{display:flex;align-items:center;justify-content:center;width:34px;heigh
       <div><label>Margen predeterminado %</label><input class="cost" data-k="margin" type="number"></div>
       <div><label>Tiempo prom. de impresión por hoja (min)</label><input class="cost" data-k="avgTimePerSheet" type="number"></div>
     </div>
+    </div></details>
 
-    <div class="section-title">🖋️ Registro de compra de tinta</div>
+    <details><summary>🖋️ Registro de compra de tinta</summary><div class="acc-body">
     <small>Cada compra actualiza el costo de tinta $/litro de referencia.</small>
     <div class="form">
       <div><label>Fecha</label><input id="inkBuyDate" type="date"></div>
@@ -242,8 +277,11 @@ nav span{display:flex;align-items:center;justify-content:center;width:34px;heigh
     </div>
     <button class="soft" onclick="addInkPurchase()">➕ Agregar compra de tinta</button>
     <div id="inkPurchaseList"></div>
+    </div></details>
 
-    <div class="section-title">📃 Papeles</div><div id="paperEditor"></div><button class="soft" onclick="addPaper()">＋ Agregar papel</button>
+    <details><summary>📃 Papeles</summary><div class="acc-body">
+    <div id="paperEditor"></div><button class="soft" onclick="addPaper()">＋ Agregar papel</button>
+    </div></details>
   </div>
 </section>
 
@@ -308,6 +346,10 @@ nav span{display:flex;align-items:center;justify-content:center;width:34px;heigh
   </div>
 </section>
 </main>
+
+<div id="miniCart" class="minicart" onclick="document.getElementById('carritoBox').scrollIntoView({behavior:'smooth',block:'center'})">
+  <span id="miniCartText">🛒 0 artículos</span><span id="miniCartTotal">$0</span>
+</div>
 
 <nav><div class="navinner">
 <button data-page="inicio" class="active" onclick="go('inicio')"><span>⌂</span>Inicio</button>
@@ -388,6 +430,7 @@ function nuevoPedido(){
     topper={type:'A',mode:'6',qty:6,style:'simple',premium:false,premiumColor:'dorado',layer:false,acetate:false,paperId:(db.papers[0]?db.papers[0].id:null)};
     metal={type:'names',size:'10',custom:10};
     ['pNombre','pTelefono','pEntrega','pTematica','pMedida','pColor','pDetalles'].forEach(x=>$(x).value='');
+    $('pSena').value = 0;
     $('pEstado').value = 'Pendiente';
     $('pedidoTitulo').textContent='🛍️ Nuevo pedido';
     if($('btnEliminarPedido')) $('btnEliminarPedido').style.display='none';
@@ -652,12 +695,37 @@ function renderCarrito(){
     </div>`;
   }).join('') || '<div class="empty">Carrito vacío.</div>';
   $('granTotal').textContent = money(gt);
+  const sena = +($('pSena')?.value)||0;
+  const falta = gt - sena;
+  if($('senaRow')){
+    if(sena>0){
+      $('senaRow').style.display='flex';
+      $('senaMonto').textContent=money(sena);
+      $('faltaMonto').textContent=money(Math.max(0,falta));
+    } else {
+      $('senaRow').style.display='none';
+    }
+  }
+  renderMiniCart(gt);
+}
+function renderMiniCart(gt){
+  const mc = $('miniCart'); if(!mc) return;
+  const enPedidos = document.getElementById('pedidos').classList.contains('active');
+  if(enPedidos && currentCart.length){
+    if(typeof gt !== 'number') gt = currentCart.reduce((a,i)=>a+i.quote.total,0);
+    mc.style.display = 'flex';
+    $('miniCartText').textContent = `🛒 ${currentCart.length} artículo${currentCart.length>1?'s':''}`;
+    $('miniCartTotal').textContent = money(gt);
+  } else {
+    mc.style.display = 'none';
+  }
 }
 
 function loadOrder(id){
  const o=db.orders.find(x=>Number(x.id)===Number(id));if(!o)return;editId=id;
  $('pNombre').value=o.client;$('pTelefono').value=o.phone||'';$('pEntrega').value=o.delivery||'';
  $('pEstado').value=o.status||'Pendiente'; $('pTematica').value=o.tematica||''; $('pMedida').value=o.measure||'';$('pColor').value=o.color||'';$('pDetalles').value=o.details||'';
+ $('pSena').value = o.deposit||0;
  if(o.items){currentCart = clone(o.items);} else {currentCart = [{ name: o.article, type: o.article, topper: o.topper||null, metal: o.metal||null, quote: {total: o.total, cost: o.cost, materialSheets: o.materialSheets, lines: o.lines||[], quantity: o.quantity} }];}
  $('pedidoTitulo').textContent='✏️ Editar pedido #'+String(o.orderNumber||0).padStart(2, '0');
  if($('btnEliminarPedido')) $('btnEliminarPedido').style.display='inline-block';
@@ -670,7 +738,7 @@ function guardarPedido(){
  if(currentCart.length === 0){alert('Agregá algo al carrito.');return;}
  let gt = currentCart.reduce((sum, item) => sum + item.quote.total, 0), gc = currentCart.reduce((sum, item) => sum + (item.quote.cost||0), 0);
  
- const data = {client: $('pNombre').value.trim(), phone: $('pTelefono').value.trim(), delivery: $('pEntrega').value, status: $('pEstado').value, tematica: $('pTematica').value.trim(), measure: $('pMedida').value.trim(), color: $('pColor').value.trim(), details: $('pDetalles').value.trim(), items: currentCart, total: gt, cost: gc, article: `Varios (${currentCart.length})`};
+ const data = {client: $('pNombre').value.trim(), phone: $('pTelefono').value.trim(), delivery: $('pEntrega').value, status: $('pEstado').value, tematica: $('pTematica').value.trim(), measure: $('pMedida').value.trim(), color: $('pColor').value.trim(), details: $('pDetalles').value.trim(), items: currentCart, total: gt, cost: gc, deposit: +$('pSena').value||0, article: `Varios (${currentCart.length})`};
  
  if(editId){
      const existing = db.orders.find(o=>Number(o.id)===Number(editId));
@@ -697,34 +765,79 @@ function eliminarPedido(){
 
 function textOrder(o){
   let itemsText = (o.items || []).map((item, i) => {
-    let emoji = '📦';
-    if(item.type === 'topper') emoji = '🎂';
-    else if(item.type === 'metal') emoji = '✨';
-    else emoji = '🏷️';
-    return `${emoji} *Artículo ${i+1}: ${esc(item.name)}*\n` + item.quote.lines.map(x => `  • ${x[0]}${x[1]?` (${x[1]})`:''}: *${money(x[2])}*`).join('\n') + (item.detail?`\n  📝 ${esc(item.detail)}`:'');
+    return `🏷️ *Artículo ${i+1}: ${esc(item.name)}*\n` +
+      item.quote.lines.map(x => `  • ${x[0]}${x[1]?` (${x[1]})`:''}: *${money(x[2])}*`).join('\n') +
+      (item.detail?`\n  ✏️ ${esc(item.detail)}`:'');
   }).join('\n\n');
-  
-  return `✨ *NOT — Presupuesto* ✨\n\n🔖 *Pedido:* #${String(o.orderNumber||0).padStart(2,'0')}\n👤 *Cliente:* ${o.client}${o.phone?`\n📱 *Tel:* ${o.phone}`:''}\n📅 *Entrega:* ${o.delivery?o.delivery.split('-').reverse().join('/'):'A confirmar'}\n\n${itemsText}\n\n${o.tematica?`🎉 *Temática:* ${o.tematica}\n`:''}${o.measure?`📏 *Medida general:* ${o.measure}\n`:''}${o.color?`🎨 *Color general:* ${o.color}\n`:''}${o.details?`📝 *Detalles:* ${o.details}\n`:''}\n💰 *TOTAL:* *${money(o.total)}*\n\nGracias por elegir NOT 💖`;
+
+  const sena = Number(o.deposit||0);
+  const falta = Math.max(0, Number(o.total||0) - sena);
+
+  return `*NOT  Presupuesto* ✦\n\n` +
+    `🧾 *Pedido:* #${String(o.orderNumber||0).padStart(2,'0')}\n` +
+    `⭐ *Cliente:* ${o.client}${o.phone?` / 📱 *Tel:* ${o.phone}`:''}\n` +
+    `🗓️ *Entrega:* ${o.delivery?o.delivery.split('-').reverse().join('/'):'A confirmar'}\n\n` +
+    `${itemsText}\n\n` +
+    `${o.tematica?`🎉 *Temática:* ${o.tematica}\n`:''}` +
+    `${o.measure?`📏 *Medida:* ${o.measure}\n`:''}` +
+    `${o.color?`🎨 *Color:* ${o.color}\n`:''}` +
+    `${o.details?`✏️ *Detalles:* ${o.details}\n`:''}` +
+    `\n💲 *Seña:* *${money(sena)}*\n` +
+    `✅ *Total:* *${money(o.total)}*` +
+    (sena>0 && falta>0.5 ? `\n💳 *Saldo:* *${money(falta)}*` : '') +
+    `\n\nGracias por elegir NOT 💖`;
 }
 
 function share(o){const text=textOrder(o);if(navigator.share)navigator.share({title:'Presupuesto NOT',text});else window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank')}
 function compartirActual(){const o = db.orders.find(x=>Number(x.id)===Number(editId)); if(o) share(o); else alert('Guardá el pedido primero.');}
 
+function orderRow(o){
+  const falta = Number(o.total||0) - Number(o.deposit||0);
+  const mostrarFalta = (o.deposit||0) > 0 && falta > 0.5;
+  return `<div class="order" onclick="loadOrder(${o.id})">
+    <div class="row">
+      <div><b>#${String(o.orderNumber||0).padStart(2,'0')} · ${esc(o.client)}</b><br><small>📅 ${o.delivery.split('-').reverse().join('/')} · 📌 ${o.status}</small></div>
+      <div style="text-align:right"><b>${money(o.total)}</b>${mostrarFalta?`<br><small style="color:var(--muted)">Falta: ${money(falta)}</small>`:''}</div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <span></span>
+      <button class="paidBadge ${o.paid?'is-paid':''}" onclick="event.stopPropagation();togglePaid(${o.id})">${o.paid?'✅ Pagado':'⭕ Marcar pagado'}</button>
+    </div>
+  </div>`;
+}
+function togglePaid(id){
+  const o = db.orders.find(x=>Number(x.id)===Number(id)); if(!o) return;
+  o.paid = !o.paid;
+  save(); renderAll();
+}
+
 function renderOrders(){
- const arr=[...db.orders].sort((a,b)=>String(a.delivery).localeCompare(String(b.delivery)));
- $('pedidosLista').innerHTML=arr.length?arr.map(o=>`<div class="order" onclick="loadOrder(${o.id})"><div class="row"><div><b>#${String(o.orderNumber||0).padStart(2,'0')} · ${esc(o.client)}</b><br><small>📅 ${o.delivery.split('-').reverse().join('/')} · 📌 ${o.status}</small></div><b>${money(o.total)}</b></div></div>`).join(''):'<div class="empty">No hay pedidos.</div>';
+ let arr=[...db.orders].sort((a,b)=>String(a.delivery).localeCompare(String(b.delivery)));
+ const q = ($('pedidosBuscar')?.value||'').trim().toLowerCase();
+ if(q) arr = arr.filter(o => (o.client||'').toLowerCase().includes(q) || String(o.orderNumber||'').includes(q));
+ $('pedidosLista').innerHTML=arr.length?arr.map(orderRow).join(''):'<div class="empty">No se encontraron pedidos.</div>';
+ const clientes = [...new Set(db.orders.map(o=>o.client).filter(Boolean))];
+ if($('clientesList')) $('clientesList').innerHTML = clientes.map(c=>`<option value="${esc(c)}">`).join('');
 }
 function renderInicio(){
  const activeOrders = db.orders.filter(o=>!['Entregado','Cancelado'].includes(o.status));
  const ventas = activeOrders.reduce((a,o)=>a+(Number(o.total)||0),0);
  const cost = activeOrders.reduce((a,o)=>a+(Number(o.cost)||0),0);
+ const ganancia = ventas-cost;
  
- $('sVentas').textContent=money(ventas);$('sCostos').textContent=money(cost);$('sGanancias').textContent=money(ventas-cost);$('sActivos').textContent=activeOrders.length;
+ $('sVentas').textContent=money(ventas);$('sCostos').textContent=money(cost);$('sActivos').textContent=activeOrders.length;
+ $('sGanancias').firstChild.textContent=money(ganancia);
+ const stG=$('statGanancias'), trendEl=$('sGananciasTrend'), icoEl=$('sGananciasIco');
+ if(stG){ stG.classList.remove('acc-green','acc-red'); stG.classList.add(ganancia>=0?'acc-green':'acc-red'); }
+ if(trendEl){ trendEl.textContent = ganancia>=0?'▲':'▼'; trendEl.className='trend '+(ganancia>=0?'up':'down'); }
+ if(icoEl){ icoEl.textContent = ganancia>=0?'📈':'📉'; }
  
- $('inicioStock').innerHTML = db.papers.length ? `<div class="cols">${db.papers.map(p=>{const bajo=(p.stock||0)<20; return `<div class="stat" style="margin:0${bajo?';border-color:#f3c3ce':''}"><small>${esc(p.name)}${bajo?' ⚠️':''}</small><strong style="${bajo?'color:var(--red-700)':''}">${p.stock||0} hojas</strong></div>`}).join('')}</div>` : '<div class="empty">Sin papeles cargados.</div>';
+ $('inicioStock').innerHTML = db.papers.length ? `<div class="cols" style="gap:5px">${db.papers.map(p=>{const bajo=(p.stock||0)<20; return `<div class="stat" style="margin:0;padding:7px 10px;border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:6px${bajo?';border-color:#f3c3ce':''}"><small style="font-size:9.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.name)}${bajo?' ⚠️':''}</small><strong style="font-size:15px;white-space:nowrap${bajo?';color:var(--red-700)':''}">${p.stock||0}</strong></div>`}).join('')}</div>` : '<div class="empty">Sin papeles cargados.</div>';
  
  const arr=[...db.orders].sort((a,b)=>String(a.delivery).localeCompare(String(b.delivery)));
- $('inicioPedidos').innerHTML=arr.length?arr.map(o=>`<div class="order" onclick="loadOrder(${o.id})"><div class="row"><div><b>#${String(o.orderNumber||0).padStart(2,'0')} · ${esc(o.client)}</b><br><small>📅 ${o.delivery.split('-').reverse().join('/')} · 📌 ${o.status}</small></div><b>${money(o.total)}</b></div></div>`).join(''):'<div class="empty">Todavía no hay pedidos.</div>';
+ const top = arr.slice(0,5);
+ $('inicioPedidos').innerHTML=top.length?top.map(orderRow).join(''):'<div class="empty">Todavía no hay pedidos.</div>';
+ $('inicioVerTodos').style.display = arr.length>5 ? 'block' : 'none';
 }
 
 function exportCSV(){
@@ -931,6 +1044,7 @@ function renderAll(){
  $('cPapel').innerHTML=db.papers.map((p,i)=>`<option value="${i}">${esc(p.name)}</option>`).join('');
  renderInicio();renderOrders();renderChoices();renderBuilder();renderPriceInputs();renderInkPurchases();calc();
  if($('balDesde')) renderBalance();
+ renderMiniCart();
 }
 
 ['cHojas','cTiempo','cHoras','cMinutos','cMargen'].forEach(id=>$(id).addEventListener('input',calc)); $('cPapel').addEventListener('change',calc);

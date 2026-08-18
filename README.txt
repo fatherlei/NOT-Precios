@@ -1,14 +1,19 @@
-CALCULADORA NOT — WEB INSTALABLE
+NOT — PWA / GitHub
 
-Subí TODOS los archivos de esta carpeta a la misma carpeta de tu hosting:
-index.html
-manifest.json
-service-worker.js
-icon-192.png
-icon-512.png
+Estructura:
+- index.html
+- manifest.json
+- service-worker.js
+- logo.png
+- icon-192.png
+- icon-512.png
+- README.txt
 
-Luego abrí la web desde Chrome en Android. Desde el menú de Chrome podés elegir
-“Agregar a pantalla principal” o “Instalar aplicación”.
+Para GitHub:
+1. Subí TODOS estos archivos al repositorio.
+2. Activá GitHub Pages desde Settings > Pages.
+3. Elegí Deploy from a branch y seleccioná la rama principal.
+4. Abrí la URL de GitHub Pages.
+5. En Android/Chrome se puede instalar como aplicación cuando el navegador ofrezca "Instalar app".
 
-Para que funcione como PWA y pueda instalarse correctamente, el sitio debe estar
-publicado con HTTPS.
+El logo y los iconos están incluidos localmente; no dependen de Imgur.
