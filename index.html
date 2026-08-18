@@ -85,8 +85,11 @@ textarea{min-height:85px}
 table{width:100%;border-collapse:collapse}
 th,td{text-align:left;padding:9px 4px;border-bottom:1px solid var(--line);font-size:12px}
 
-.order{border:1px solid var(--line);border-radius:var(--r-lg);padding:13px;margin:9px 0;background:#fff;cursor:pointer;transition:box-shadow .15s ease,border-color .15s ease}
+.order{border:1px solid var(--line);border-radius:var(--r-lg);padding:13px;margin:9px 0;background:#fff;cursor:pointer;transition:box-shadow .15s ease,border-color .15s ease,opacity .15s ease,filter .15s ease}
 .order:hover{border-color:#d8d0d6;box-shadow:var(--shadow-md)}
+.order.delivered{background:#eeeeef;border-color:#d7d7da;color:#777;opacity:.72;filter:saturate(.35)}
+.order.delivered:hover{background:#e8e8e9;border-color:#cfcfd2}
+.order.delivered small,.order.delivered b{color:#777}
 .paidBadge{background:#f3eef2;color:#57515a;font-size:11px;padding:6px 11px;border-radius:999px;box-shadow:none;font-weight:700}
 .paidBadge.is-paid{background:var(--green-50);color:var(--green-700)}
 
@@ -794,17 +797,19 @@ function compartirActual(){const o = db.orders.find(x=>Number(x.id)===Number(edi
 function orderRow(o){
   const falta = Number(o.total||0) - Number(o.deposit||0);
   const mostrarFalta = (o.deposit||0) > 0 && falta > 0.5;
-  return `<div class="order" onclick="loadOrder(${o.id})">
+  const delivered = o.status === 'Entregado';
+  return `<div class="order ${delivered?'delivered':''}" onclick="loadOrder(${o.id})">
     <div class="row">
-      <div><b>#${String(o.orderNumber||0).padStart(2,'0')} · ${esc(o.client)}</b><br><small>📅 ${o.delivery.split('-').reverse().join('/')} · 📌 ${o.status}</small></div>
+      <div><b>#${String(o.orderNumber||0).padStart(2,'0')} · ${esc(o.client)}</b><br><small>📅 ${o.delivery ? o.delivery.split('-').reverse().join('/') : 'Sin fecha'} · 📌 ${o.status||'Pendiente'}</small></div>
       <div style="text-align:right"><b>${money(o.total)}</b>${mostrarFalta?`<br><small style="color:var(--muted)">Falta: ${money(falta)}</small>`:''}</div>
     </div>
     <div class="row" style="margin-top:8px">
-      <span></span>
+      <span>${delivered?'✅ Entregado':''}</span>
       <button class="paidBadge ${o.paid?'is-paid':''}" onclick="event.stopPropagation();togglePaid(${o.id})">${o.paid?'✅ Pagado':'⭕ Marcar pagado'}</button>
     </div>
   </div>`;
 }
+
 function togglePaid(id){
   const o = db.orders.find(x=>Number(x.id)===Number(id)); if(!o) return;
   o.paid = !o.paid;
@@ -812,13 +817,21 @@ function togglePaid(id){
 }
 
 function renderOrders(){
- let arr=[...db.orders].sort((a,b)=>String(a.delivery).localeCompare(String(b.delivery)));
- const q = ($('pedidosBuscar')?.value||'').trim().toLowerCase();
- if(q) arr = arr.filter(o => (o.client||'').toLowerCase().includes(q) || String(o.orderNumber||'').includes(q));
- $('pedidosLista').innerHTML=arr.length?arr.map(orderRow).join(''):'<div class="empty">No se encontraron pedidos.</div>';
- const clientes = [...new Set(db.orders.map(o=>o.client).filter(Boolean))];
- if($('clientesList')) $('clientesList').innerHTML = clientes.map(c=>`<option value="${esc(c)}">`).join('');
+  let arr=[...db.orders].sort((a,b)=>{
+    const ad=a.status==='Entregado', bd=b.status==='Entregado';
+    if(ad!==bd) return ad ? 1 : -1;
+    const da=a.delivery||'9999-12-31', dbb=b.delivery||'9999-12-31';
+    const byDelivery=String(da).localeCompare(String(dbb));
+    if(byDelivery!==0) return byDelivery;
+    return Number(b.id||0)-Number(a.id||0);
+  });
+  const q = ($('pedidosBuscar')?.value||'').trim().toLowerCase();
+  if(q) arr = arr.filter(o => (o.client||'').toLowerCase().includes(q) || String(o.orderNumber||'').includes(q));
+  $('pedidosLista').innerHTML=arr.length?arr.map(orderRow).join(''):'<div class="empty">No se encontraron pedidos.</div>';
+  const clientes = [...new Set(db.orders.map(o=>o.client).filter(Boolean))];
+  if($('clientesList')) $('clientesList').innerHTML = clientes.map(c=>`<option value="${esc(c)}">`).join('');
 }
+
 function renderInicio(){
  const activeOrders = db.orders.filter(o=>!['Entregado','Cancelado'].includes(o.status));
  const ventas = activeOrders.reduce((a,o)=>a+(Number(o.total)||0),0);
@@ -834,7 +847,13 @@ function renderInicio(){
  
  $('inicioStock').innerHTML = db.papers.length ? `<div class="cols" style="gap:5px">${db.papers.map(p=>{const bajo=(p.stock||0)<20; return `<div class="stat" style="margin:0;padding:7px 10px;border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:6px${bajo?';border-color:#f3c3ce':''}"><small style="font-size:9.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.name)}${bajo?' ⚠️':''}</small><strong style="font-size:15px;white-space:nowrap${bajo?';color:var(--red-700)':''}">${p.stock||0}</strong></div>`}).join('')}</div>` : '<div class="empty">Sin papeles cargados.</div>';
  
- const arr=[...db.orders].sort((a,b)=>String(a.delivery).localeCompare(String(b.delivery)));
+ const arr=[...db.orders].sort((a,b)=>{
+   const ad=a.registeredISO || parseRegistered(a.registered) || '';
+   const bd=b.registeredISO || parseRegistered(b.registered) || '';
+   const byRegistered=String(bd).localeCompare(String(ad));
+   if(byRegistered!==0) return byRegistered;
+   return Number(b.id||0)-Number(a.id||0);
+ });
  const top = arr.slice(0,5);
  $('inicioPedidos').innerHTML=top.length?top.map(orderRow).join(''):'<div class="empty">Todavía no hay pedidos.</div>';
  $('inicioVerTodos').style.display = arr.length>5 ? 'block' : 'none';
