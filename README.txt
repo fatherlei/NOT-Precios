@@ -1,6 +1,6 @@
-NOT — PWA / GitHub
+NOT — paquete completo para GitHub Pages / PWA
 
-Estructura:
+SUBIR TODO:
 - index.html
 - manifest.json
 - service-worker.js
@@ -9,11 +9,17 @@ Estructura:
 - icon-512.png
 - README.txt
 
-Para GitHub:
-1. Subí TODOS estos archivos al repositorio.
-2. Activá GitHub Pages desde Settings > Pages.
-3. Elegí Deploy from a branch y seleccioná la rama principal.
-4. Abrí la URL de GitHub Pages.
-5. En Android/Chrome se puede instalar como aplicación cuando el navegador ofrezca "Instalar app".
+IMPORTANTE:
+Todos los archivos deben quedar en la RAÍZ del repositorio de GitHub.
 
-El logo y los iconos están incluidos localmente; no dependen de Imgur.
+Esta versión usa Service Worker "not-pwa-v3" para invalidar la caché anterior.
+Después de subir los archivos, esperá a que GitHub Pages termine el deploy y
+recargá la aplicación.
+
+CAMBIOS DE ESTA VERSIÓN:
+- Inicio: últimos pedidos registrados primero.
+- Pedidos: próximos vencimientos primero.
+- Entregados: tarjeta gris/atenuada y al final.
+- PWA: manifest y Service Worker incluidos.
+- Caché versionada para que las actualizaciones lleguen al teléfono.
+- Logo e iconos incluidos localmente.

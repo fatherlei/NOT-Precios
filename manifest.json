@@ -3,6 +3,7 @@
   "short_name": "NOT",
   "description": "Calculadora, pedidos y costos de NOT",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#f05ab8",
