@@ -637,9 +637,10 @@ function currentQuote(){
    const sheetCost=(Number(db.prices.metalSheetCost)||0)/12*factor;
    const acetateCost=(Number(db.prices.metalAcetateCost)||0)/24*factor;
    const materialCost=sheetCost+acetateCost;
+   const tipoLabel=metal.type==='names'?'Nombres/palabras':metal.type==='phrases'?'Frases/iniciales':'Figuras especiales';
    return {total:cm*r,cost:materialCost,
-     lines:[['Metalizada A3',`${cm} cm · ${factor.toFixed(2)} cuadrado(s)`,sheetCost],
-            ['Acetato 60×80',`${cm} cm · ${factor.toFixed(2)} cuadrado(s)`,acetateCost]],
+     costParts:[['Metalizada A3 (base)',sheetCost],['Acetato 60×80',acetateCost]],
+     lines:[['Metalizado',`${tipoLabel} · ${cm} cm`,cm*r]],
      quantity:1}
   }
  if(selected==='free'){
