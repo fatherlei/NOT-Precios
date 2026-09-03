@@ -15,7 +15,7 @@ Todos los archivos deben quedar en la RAÍZ del repositorio de GitHub
 haya quedado en el repo (por ejemplo copias tipo
 "Calculadora_NOT_FINAL...") — el sitio solo usa index.html.
 
-Esta versión usa Service Worker "not-app-v21" para invalidar la caché
+Esta versión usa Service Worker "not-app-v22" para invalidar la caché
 anterior. Ese número de versión es lo que le avisa al teléfono/
 navegador que hay contenido nuevo para descargar — si en el futuro
 volvés a subir cambios y no se actualiza solo, subí también el número

@@ -430,13 +430,13 @@ nav span{display:flex;align-items:center;justify-content:center;width:34px;heigh
 <script>
 const KEY='NOT_FINAL_2026_V5';
 const initial={
-  prices:{A:3500,B:5500,mult6:1,mult10:1.4,simple:1,threeD:2.5,metalNames:400,metalPhrases:600,metalFigures:850,metalSheetCost:0,metalAcetateCost:0,premium:7000,layer:2000,acetate:1000},
+  prices:{A:3500,B:5500,mult6:1,mult10:1.4,simple:1,threeD:2.5,metalNames:400,metalPhrases:600,metalFigures:850,metalSheetCost:1300,metalAcetateCost:2100,premium:7000,layer:2000,acetate:1000},
   articles:[
     {name:'Hoja personalizada',price:1500,materialCost:0,desc:'Hoja de papelería personalizada'},
     {name:'Stickers personalizado',price:1800,materialCost:0,desc:'Stickers personalizados'}
   ],
-  papers:[{name:'Papel Glossy',packPrice:10302,packQty:100},{name:'Stickers',packPrice:0,packQty:1}],
-  costs:{inkPrice:11200,inkMl:1.8,electricity:182.39,printerKw:.12,printerCost:580000,printerLife:30000,other:0,hour:5300,margin:50,avgTimePerSheet:5},
+  papers:[{name:'Papel Glossy 180g',packPrice:104,packQty:1,stock:56},{name:'Stickers',packPrice:176.46,packQty:1,stock:150}],
+  costs:{inkPrice:19500,inkMl:1.1,electricity:183,printerKw:.12,printerCost:600000,printerLife:30000,other:0,hour:5300,margin:100,avgTimePerSheet:5},
   orders:[],
   inkPurchases:[],
   driveSyncUrl:''
@@ -1053,7 +1053,7 @@ function renderInicio(){
  
  $('sVentas').textContent=money(ventas);$('sCostos').textContent=money(cost);$('sGanancias').textContent=money(ventas-cost);$('sActivos').textContent=activeOrders.length;
  
- $('inicioStock').innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="stat" style="margin:0"><small>Papel Glossy</small><strong>${(()=>{const p=db.papers.find(x=>x.name==='Papel Glossy');return p?(p.stock||0):0})()} hojas</strong></div><div class="stat" style="margin:0"><small>Stickers</small><strong>${(()=>{const p=db.papers.find(x=>x.name==='Stickers');return p?(p.stock||0):0})()} hojas</strong></div></div>`;
+ $('inicioStock').innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${db.papers.map(p=>`<div class="stat" style="margin:0"><small>${esc(p.name)}</small><strong>${p.stock||0} hojas</strong></div>`).join('')}</div>`;
  
  const arr=[...db.orders].sort((a,b)=>String(a.delivery).localeCompare(String(b.delivery)));
  $('inicioPedidos').innerHTML=arr.length?arr.map(o=>`<div class="order" onclick="loadOrder(${o.id})"><div class="row"><div><b>#${String(o.orderNumber||0).padStart(2,'0')} · ${esc(o.client)}</b><br><small>📅 ${o.delivery.split('-').reverse().join('/')} · 📌 ${o.status}</small></div><b>${money(o.total)}</b></div></div>`).join(''):'<div class="empty">Todavía no hay pedidos.</div>';
