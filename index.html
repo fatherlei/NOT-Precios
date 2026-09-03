@@ -432,8 +432,8 @@ const KEY='NOT_FINAL_2026_V5';
 const initial={
   prices:{A:3500,B:5500,mult6:1,mult10:1.4,simple:1,threeD:2.5,metalNames:400,metalPhrases:600,metalFigures:850,metalSheetCost:1300,metalAcetateCost:2100,premium:7000,layer:2000,acetate:1000},
   articles:[
-    {name:'Hoja personalizada',price:1500,materialCost:0,desc:'Hoja de papelería personalizada'},
-    {name:'Stickers personalizado',price:1800,materialCost:0,desc:'Stickers personalizados'}
+    {name:'Hoja Personalizada',price:1500,materialCost:0,desc:'Hoja de papelería personalizada'},
+    {name:'Sticker',price:1800,materialCost:0,desc:'Sticker personalizado'}
   ],
   papers:[{name:'Papel Glossy 180g',packPrice:104,packQty:1,stock:56},{name:'Stickers',packPrice:176.46,packQty:1,stock:150}],
   costs:{inkPrice:19500,inkMl:1.1,electricity:183,printerKw:.12,printerCost:600000,printerLife:30000,other:0,hour:5300,margin:100,avgTimePerSheet:5},
@@ -463,6 +463,14 @@ if(!db.papers.some(p=>p.name==='Stickers')){
   db.papers.push({name:'Stickers',packPrice:db.prices.costStickerSheet||0,packQty:1});
 }
 delete db.prices.costStickerSheet;
+// Asegura que "Hoja Personalizada" y "Sticker" existan siempre como artículos rápidos,
+// aunque el dispositivo ya tuviera datos guardados de antes.
+if(!db.articles.some(a=>/hoja personalizada/i.test(a.name))){
+  db.articles.push({name:'Hoja Personalizada',price:1500,materialCost:0,desc:'Hoja de papelería personalizada',paperId:(__glossy?.id ?? db.papers[0]?.id ?? null)});
+}
+if(!db.articles.some(a=>/^sticker/i.test(a.name))){
+  db.articles.push({name:'Sticker',price:1800,materialCost:0,desc:'Sticker personalizado',paperId:(__sticker?.id ?? null)});
+}
 // Migración: id estable, stock y compras por papel
 let __maxPaperId=0;
 db.papers.forEach(p=>{ if(p.id) __maxPaperId=Math.max(__maxPaperId,p.id); });
@@ -494,7 +502,7 @@ let editId=null, selected=null;
 let currentCart=[]; 
 let topper={type:'A',mode:'6',qty:6,sheets:1,style:'simple',premium:false,premiumColor:'dorado',layer:false,acetate:false,paperId:(db.papers[0]?db.papers[0].id:null)};
 let metal={type:'names',size:'10',custom:10};
-let freeArt={name:'',price:0,pricePerSheet:0,sheets:1,paperId:(db.papers[0]?db.papers[0].id:null)};
+let freeArt={name:'',price:0,pricePerSheet:0,sheets:1,paperId:(__glossy?.id ?? (db.papers[0]?db.papers[0].id:null))};
 
 const $=id=>document.getElementById(id);
 const money=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:2}).format(Number(n)||0);
@@ -508,7 +516,7 @@ function nuevoPedido(){
     editId=null; selected=null; currentCart=[];
     topper={type:'A',mode:'6',qty:6,sheets:1,style:'simple',premium:false,premiumColor:'dorado',layer:false,acetate:false,paperId:(db.papers[0]?db.papers[0].id:null)};
     metal={type:'names',size:'10',custom:10};
-    freeArt={name:'',price:0,pricePerSheet:0,sheets:1,paperId:(db.papers[0]?db.papers[0].id:null)};
+    freeArt={name:'',price:0,pricePerSheet:0,sheets:1,paperId:(__glossy?.id ?? (db.papers[0]?db.papers[0].id:null))};
     ['pNombre','pTelefono','pEntrega','pTematica','pMedida','pColor','pDetalles'].forEach(x=>$(x).value='');
     $('pEstado').value = 'Pendiente';
     $('pedidoTitulo').textContent='🏷️ Nuevo Pedido';
@@ -829,7 +837,7 @@ function addToCart(){
     const idx=db.freeArticleCatalog.findIndex(c=>c.name.toLowerCase()===nm.toLowerCase());
     if(idx>=0) db.freeArticleCatalog[idx]=entry; else db.freeArticleCatalog.push(entry);
     save();
-    freeArt={name:'',price:0,pricePerSheet:0,sheets:1,paperId:(db.papers[0]?db.papers[0].id:null)};
+    freeArt={name:'',price:0,pricePerSheet:0,sheets:1,paperId:(__glossy?.id ?? (db.papers[0]?db.papers[0].id:null))};
   }
   $('itemDetalle').value='';
   renderCarrito(); selected=null; renderChoices(); renderBuilder();
@@ -850,6 +858,14 @@ function renderCarrito(){
     </div>`;
   }).join('') || '<div class="empty">Carrito vacío.</div>';
   $('granTotal').textContent = money(gt);
+  let costoBox = $('pedidoCostoResumen');
+  if(!costoBox){
+    costoBox = document.createElement('div');
+    costoBox.id = 'pedidoCostoResumen';
+    costoBox.style.cssText = 'margin-top:6px;font-size:12px;color:var(--muted)';
+    $('granTotal').closest('.row').after(costoBox);
+  }
+  costoBox.innerHTML = currentCart.length ? `<div class="row" style="margin:0"><span>💸 Costo real (todas las hojas)</span><b>${money(gc)}</b></div>` : '';
   const sena = Math.min(Math.max(0, Number($('pSena')?.value) || 0), gt);
   const resta = Math.max(0, gt - sena);
   let saldoBox = $('pedidoSaldoResumen');
