@@ -1,6 +1,6 @@
 NOT — paquete completo para GitHub Pages / PWA
 
-SUBIR TODO:
+SUBIR TODO (reemplazando lo que ya está en el repo):
 - index.html
 - manifest.json
 - service-worker.js
@@ -10,16 +10,24 @@ SUBIR TODO:
 - README.txt
 
 IMPORTANTE:
-Todos los archivos deben quedar en la RAÍZ del repositorio de GitHub.
+Todos los archivos deben quedar en la RAÍZ del repositorio de GitHub
+(no dentro de una subcarpeta).
 
-Esta versión usa Service Worker "not-pwa-v3" para invalidar la caché anterior.
-Después de subir los archivos, esperá a que GitHub Pages termine el deploy y
-recargá la aplicación.
+Esta versión usa Service Worker "not-app-v20" para invalidar la caché
+anterior ("not-app-v19"). Es el número de versión el que le avisa al
+teléfono/navegador que hay una versión nueva para descargar — si en el
+futuro volvés a subir cambios y no se actualiza solo, subí también el
+número de versión en la primera línea de service-worker.js.
+
+DESPUÉS DE SUBIR LOS ARCHIVOS:
+1. Esperá 1-2 minutos a que GitHub Pages termine el deploy.
+2. Abrí la app y esperá unos segundos — el Service Worker nuevo se
+   instala solo en segundo plano.
+3. Cerrá completamente la app (o la pestaña) y volvé a abrirla. Recién
+   ahí se activa la versión nueva y se borra la caché vieja.
+   (Si seguís sin ver los cambios, probá desinstalar y volver a
+   agregar el acceso directo/ícono a la pantalla de inicio.)
 
 CAMBIOS DE ESTA VERSIÓN:
-- Inicio: últimos pedidos registrados primero.
-- Pedidos: próximos vencimientos primero.
-- Entregados: tarjeta gris/atenuada y al final.
-- PWA: manifest y Service Worker incluidos.
-- Caché versionada para que las actualizaciones lleguen al teléfono.
-- Logo e iconos incluidos localmente.
+- Service Worker actualizado a v20 para forzar la actualización de
+  caché en todos los dispositivos.
