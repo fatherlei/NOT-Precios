@@ -1005,7 +1005,7 @@ function textOrder(o){
     const emoji=item.type==='topper'?'🎂':item.type==='metal'?'✨':'🏷️';
     const precio=Number(item.quote?.total||0);
     const detalle=(item.detail||'').trim();
-    return `${emoji} *${String(item.name||'Artículo')}*\n✅ Precio: *${money(precio)}*${detalle?`\n📝: ${detalle}`:''}`;
+    return `${emoji} *${String(item.name||'Artículo')}*\n• Precio: *${money(precio)}*${detalle?`\n📝: ${detalle}`:''}`;
   }).join('\n\n');
   const total=Number(o.total||0);
   const sena=Math.min(Math.max(0,Number(o.sena)||0),total);
