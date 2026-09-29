@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>NOT · Gestión</title>
-<meta name="theme-color" content="#d6298f">
+<meta name="theme-color" content="#ff66c4">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -260,6 +260,10 @@ input,select,textarea{font-size:14px;padding:7px 10px}
 .logo{height:36px}
 nav button{font-size:10px}
 .order .row b{font-size:14px}
+#pedidosLista .order{padding:8px 12px 7px;margin:6px 0;border-radius:16px!important;border-left-width:6px!important}
+#pedidosLista .order .actions button{font-size:11.5px;padding:4px 10px;box-shadow:none!important;white-space:nowrap}
+#pedidosLista .order summary{list-style:none}
+#inicioStock{margin:0}
 </style>
 </head>
 <body>
@@ -279,7 +283,7 @@ nav button{font-size:10px}
     <div class="stat acc-ink"><small>Pedidos activos</small><strong id="sActivos">0</strong></div>
   </div>
   <div class="card">
-    <div class="row"><div><h2>📦 Stock de papeles</h2><small>Se descuenta solo al guardar un pedido.</small></div><button class="soft" onclick="go('costos')">Registrar compra</button></div>
+    <div class="row" style="align-items:center;margin-bottom:6px"><h2 style="margin:0;font-size:15px" title="Se descuenta solo al guardar un pedido">📦 Stock de papeles</h2><button class="soft" style="padding:4px 11px;font-size:11.5px;white-space:nowrap" onclick="go('costos')">＋ Compra</button></div>
     <div id="inicioStock"></div>
   </div>
   <div class="card">
@@ -1187,25 +1191,27 @@ function renderOrders(){
     if(ea!==eb) return ea?1:-1;
     return String(a.delivery||'9999').localeCompare(String(b.delivery||'9999'))||(a.orderNumber||0)-(b.orderNumber||0);
   });
-  $('pedidosLista').innerHTML=arr.length?arr.map(o=>`
-    <div class="order${o.status==='Entregado'?' order-entregado':''}">
-      <div class="row">
-        <div style="flex:1;min-width:0">
-          <b>#${String(o.orderNumber||0).padStart(2,'0')} · ${esc(o.client||'')}</b><br>
-          <small>📅 ${o.delivery?o.delivery.split('-').reverse().join('/'):'A confirmar'}</small><br>
-
-        </div>
-        <div style="text-align:right"><b>${money(o.total||0)}</b><br><small>Cobrado: ${money(paidTotal(o))} · Saldo: ${money(saldoDe(o))}</small></div>
+  $('pedidosLista').innerHTML=arr.length?arr.map(o=>{
+    const m0=n=>money(n).replace(/,00$/,'');
+    const ent=o.status==='Entregado';
+    return `
+    <div class="order${ent?' order-entregado':''}">
+      <div class="row" style="gap:8px;align-items:baseline">
+        <b style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">#${String(o.orderNumber||0).padStart(2,'0')} · ${esc(o.client||'')}</b>
+        <b style="white-space:nowrap">${m0(o.total||0)}</b>
       </div>
-      <div class="actions" style="margin-top:9px;display:flex;gap:7px;flex-wrap:wrap">
+      <div class="row" style="gap:8px;margin-top:1px;flex-wrap:wrap">
+        <small style="white-space:nowrap">📅 ${o.delivery?o.delivery.split('-').reverse().join('/'):'A confirmar'}</small>
+        <small>Cobrado ${m0(paidTotal(o))} · Saldo ${m0(saldoDe(o))}</small>
+      </div>
+      <div class="actions" style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:nowrap">
         <button type="button" onclick="loadOrder(${o.id})">✏️ Editar</button>
-        <button type="button" onclick="duplicarPedido(${o.id})">📋 Duplicar</button>
-        <button type="button" class="sky" onclick="share(db.orders.find(x=>Number(x.id)===Number(${o.id})))">📲 WhatsApp</button>
-        <button type="button" class="${o.paid?'paid-btn':'pending-btn'}" onclick="registrarPago(${o.id})">${o.paid?'✓ Pagado · + pago':'💵 Cobrar'}</button>
-        <button type="button" class="${o.status==='Entregado'?'paid-btn':'pending-btn'}" onclick="toggleEntregado(${o.id})">${o.status==='Entregado'?'✓ Entregado':'Pendiente'}</button>
+        <button type="button" class="${o.paid?'paid-btn':'pending-btn'}" onclick="registrarPago(${o.id})">${o.paid?'✓ Pagado':'💵 Cobrar'}</button>
+        <button type="button" class="${ent?'paid-btn':'pending-btn'}" onclick="toggleEntregado(${o.id})">${ent?'✓ Entregado':'Pendiente'}</button>
+        <button type="button" class="sky" aria-label="Compartir" style="width:30px;height:30px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;margin-left:auto" onclick="share(db.orders.find(x=>Number(x.id)===Number(${o.id})))"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4"/></svg></button>
       </div>
-      ${(o.payments||[]).length?`<div style="margin-top:8px;font-size:12px">${o.payments.map((p,i)=>`<div class="row" style="margin:2px 0"><span>${esc((p.date||'').split('-').reverse().join('/'))} · ${esc(p.method||'')}</span><span><b>${money(p.amount)}</b> <a href="#" onclick="borrarPago(${o.id},${i});return false" style="color:#b4233c;text-decoration:none">✕</a></span></div>`).join('')}</div>`:''}
-    </div>`).join(''):'<div class="empty">No hay pedidos.</div>';
+      ${(o.payments||[]).length?`<details style="margin-top:4px;font-size:12px"><summary style="cursor:pointer;color:var(--muted)">Pagos (${o.payments.length})</summary>${o.payments.map((p,i)=>`<div class="row" style="margin:2px 0"><span>${esc((p.date||'').split('-').reverse().join('/'))} · ${esc(p.method||'')}</span><span><b>${money(p.amount)}</b> <a href="#" onclick="borrarPago(${o.id},${i});return false" style="color:#b4233c;text-decoration:none">✕</a></span></div>`).join('')}</details>`:''}
+    </div>`;}).join(''):'<div class="empty">No hay pedidos.</div>';
 }
 
 function renderInicio(){
@@ -1215,7 +1221,7 @@ function renderInicio(){
  
  $('sVentas').textContent=money(ventas);$('sCostos').textContent=money(cost);$('sGanancias').textContent=money(ventas-cost);$('sActivos').textContent=activeOrders.length;
  
- $('inicioStock').innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${db.papers.map(p=>`<div class="stat" style="margin:0"><small>${esc(p.name)}</small><strong>${p.stock||0} hojas</strong></div>`).join('')}</div>`;
+ $('inicioStock').innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">${db.papers.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;background:${(p.stock||0)<STOCK_BAJO?'#ffe0ea':'#dff6fa'};border-radius:14px;padding:6px 10px;font-size:12px"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}</span><b style="white-space:nowrap;font-size:13px">${p.stock||0} h</b></div>`).join('')}</div>`;
  
  const arr=[...db.orders].sort((a,b)=>{const ea=a.status==='Entregado',eb=b.status==='Entregado';if(ea!==eb)return ea?1:-1;return String(a.delivery||'9999').localeCompare(String(b.delivery||'9999'))||(a.orderNumber||0)-(b.orderNumber||0);});
  $('inicioPedidos').innerHTML=arr.length?arr.map(o=>`<div class="order${o.status==='Entregado'?' order-entregado':''}" onclick="loadOrder(${o.id})"><div class="row"><div><b>#${String(o.orderNumber||0).padStart(2,'0')} · ${esc(o.client)}</b><br><small>📅 ${o.delivery.split('-').reverse().join('/')} · 📌 ${o.status}</small></div><b>${money(o.total)}</b></div></div>`).join(''):'<div class="empty">Todavía no hay pedidos.</div>';
