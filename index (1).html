@@ -1,0 +1,1515 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NOT · Gestión</title>
+<meta name="theme-color" content="#ff66c4">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NOT">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pink:#ee4aa0;--pink-600:#d6298f;--pink-700:#a81f72;--pink-50:#fff0f8;
+  --sky:#38bfd6;--sky-700:#1f5964;--sky-50:#e9f9fc;
+  --yellow:#fdce43;--yellow-700:#6b4c06;--yellow-50:#fff9e6;
+  --green:#3fb87f;--green-700:#1f6b48;--green-50:#eafaf3;
+  --red:#ef5875;--red-700:#a22b46;--red-50:#fdeaf0;
+  --bg:#ffffff;--surface:#fff;--ink:#241f2b;--muted:#8b8391;--line:#ece5ea;
+  --r-sm:11px;--r-md:16px;--r-lg:20px;--r-pill:999px;
+  --shadow-sm:0 1px 3px rgba(36,31,43,.06);
+  --shadow-md:0 6px 20px rgba(36,31,43,.09);
+  --shadow-pink:0 6px 16px rgba(214,41,143,.28);
+  --font-display:'Baloo 2',system-ui,sans-serif;
+  --font-body:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);-webkit-font-smoothing:antialiased}
+header{position:sticky;top:0;z-index:20;background:#ffffff;border-bottom:3px solid;border-image:linear-gradient(90deg,var(--pink),var(--sky),var(--yellow)) 1;padding:12px 16px;display:flex;align-items:center;gap:11px;box-shadow:var(--shadow-sm)}
+.logo{width:104px;height:50px;object-fit:contain}
+.brand{font-family:var(--font-display);font-weight:700;font-size:21px;letter-spacing:.2px}
+.muted,small{color:var(--muted);font-size:12.5px}
+main{max-width:1050px;margin:auto;padding:10px 12px 88px;background:#ffffff;min-height:calc(100vh - 75px)}
+.page{display:none;background:#ffffff}.page.active{display:block;animation:fadein .25s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.stat,.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:10px;margin:6px 0;box-shadow:var(--shadow-sm)}
+.stat{position:relative;overflow:hidden;padding-top:9px;padding-bottom:9px}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--line)}
+.stat.acc-pink::before{background:var(--pink)}.stat.acc-sky::before{background:var(--sky)}
+.stat.acc-yellow::before{background:var(--yellow)}.stat.acc-green::before{background:var(--green)}
+.stat.acc-ink::before{background:var(--ink)}
+.stat strong{display:block;font-family:var(--font-display);font-size:23px;font-weight:700;margin-top:4px}
+.stat small{text-transform:uppercase;font-size:10.5px;font-weight:600;letter-spacing:.4px;color:var(--muted)}
+
+h2{font-family:var(--font-display);font-size:19px;font-weight:700;margin:0 0 4px}
+h3{font-family:var(--font-display);font-size:15px;font-weight:600;margin:16px 0 8px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:9px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+
+button{border:0;border-radius:16px;padding:10px 15px;background:var(--pink-600);color:#fff;font-family:var(--font-body);font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 7px 18px rgba(214,41,143,.20);transition:transform .12s ease,box-shadow .12s ease,background .12s ease}
+button:hover{box-shadow:0 9px 22px rgba(214,41,143,.24)}
+button:active{transform:scale(.97)}
+.yellow{background:#fff4c9;color:var(--yellow-700);box-shadow:none}
+.sky{background:#e6f8fc;color:var(--sky-700);box-shadow:none}
+.soft{background:#f3eef3;color:#57515a;box-shadow:none}
+.sky:hover{background:#dff4f9}.soft:hover{background:#eee7ed}.yellow:hover{background:#ffefb8}
+.pending-btn{background:#ffe1e6;color:#b4233c;border:1px solid #f3a7b5;box-shadow:none;font-weight:700}.pending-btn:hover{background:#ffd2da}.paid-btn{background:#dff5e8;color:#18794e;border:1px solid #9ed8b8;box-shadow:none;font-weight:700}.paid-btn:hover{background:#ccefdc}
+.danger{background:var(--red-50);color:var(--red-700);box-shadow:none}
+
+.form{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-top:8px}
+input,select,textarea{width:100%;margin-top:5px;padding:11px 12px;border:1.5px solid var(--line);border-radius:var(--r-sm);background:#fff;font:inherit;font-size:14px;color:var(--ink);transition:border-color .15s ease}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--pink-600);box-shadow:0 0 0 3px rgba(214,41,143,.12)}
+textarea{min-height:85px}
+
+.choice{border:1.5px solid var(--line);border-radius:var(--r-md);padding:12px 13px;margin:7px 0;cursor:pointer;transition:border-color .15s ease,background .15s ease}
+.choice.active{border-color:var(--pink-600);background:var(--pink-50)}
+.choice small{display:block;margin-top:3px}
+.cols{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+
+.result{background:var(--green-50);border:1px solid #cdeedc;border-radius:var(--r-lg);padding:14px;margin-top:10px}
+.line{padding:9px 0;border-bottom:1px solid #e6e0e5}
+.big{font-family:var(--font-display);font-size:25px;font-weight:700}
+
+.notice{padding:11px 13px;background:var(--yellow-50);border:1px solid #f3e2ab;border-radius:var(--r-md);font-size:13px;color:var(--yellow-700)}
+.empty{text-align:center;color:var(--muted);padding:20px}
+
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:9px 4px;border-bottom:1px solid var(--line);font-size:12px}
+
+.order{border:1px solid var(--line);border-radius:var(--r-lg);padding:13px;margin:9px 0;background:#fff;cursor:pointer;transition:box-shadow .15s ease,border-color .15s ease}
+.order:hover{border-color:#d8d0d6;box-shadow:var(--shadow-md)}
+
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);z-index:30;box-shadow:0 -4px 16px rgba(36,31,43,.06)}
+nav .navinner{max-width:1050px;margin:auto;display:grid;grid-template-columns:repeat(6,1fr)}
+nav button{background:none;color:var(--muted);border-radius:0;padding:7px 2px 8px;font-size:10px;font-weight:700;box-shadow:none;position:relative}
+nav button.active{color:var(--pink-600)}
+nav button.active::before{content:'';position:absolute;top:0;left:25%;right:25%;height:3px;border-radius:0 0 5px 5px;background:linear-gradient(90deg,var(--pink),var(--sky))}
+nav button:active{transform:none}
+nav span{display:flex;align-items:center;justify-content:center;width:34px;height:27px;margin:0 auto 2px;font-size:19px;font-weight:800}
+
+.price-grid{display:grid;grid-template-columns:1fr 150px;gap:8px;align-items:end}
+.section-title{margin-top:24px;padding-bottom:7px;border-bottom:2px solid var(--line);font-family:var(--font-display);font-weight:600;font-size:14px}
+
+.costs-accordion{border-top:1px solid var(--line)}
+.costs-accordion details{border-bottom:1px solid var(--line);margin:0}
+.costs-accordion summary{list-style:none;cursor:pointer;padding:10px 4px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--ink)}
+.costs-accordion summary::-webkit-details-marker{display:none}
+.costs-accordion summary::after{content:'⌄';font-family:Arial,sans-serif;font-size:16px;color:#8b8790;transition:transform .18s ease}
+.costs-accordion details[open] summary::after{transform:rotate(180deg)}
+.costs-accordion .accordion-body{padding:0 4px 8px}
+.costs-accordion .accordion-body>.price-grid:first-child,.costs-accordion .accordion-body>.form:first-child{margin-top:0}
+.costs-accordion .section-title{margin-top:10px}
+@media(max-width:719px){.costs-accordion summary{font-size:15px;padding:12px 2px}.costs-accordion .accordion-body{padding-left:0;padding-right:0}.costs-accordion .price-grid{gap:6px}.costs-accordion input{padding:9px 10px}.costs-accordion label{margin-top:5px}}
+.costs-main-card{padding:10px}.costs-header h2{margin-bottom:2px}.costs-header-actions{gap:7px}.costs-header-actions button{padding:8px 11px;border-radius:13px;font-size:13px;box-shadow:none;min-height:36px}.costs-header-actions .sky{background:#e9f9fc;color:var(--sky-700)}
+@media(min-width:720px){.grid{grid-template-columns:repeat(4,1fr)}.form{grid-template-columns:repeat(3,1fr)}nav{position:sticky;top:0;bottom:auto;box-shadow:var(--shadow-sm)}}
+@media(max-width:719px){
+  body{background:#ffffff}
+  header{padding:9px 13px}
+  main{padding:8px 10px 82px;background:#ffffff}
+  .card{padding:10px;margin:6px 0;border-radius:18px}
+  .stat{padding:8px 10px;margin:5px 0}
+  .stat strong{font-size:21px;margin-top:2px}
+  .row{align-items:center}
+  .actions{width:auto;gap:6px}
+  .actions button{flex:0 0 auto}
+  .costs-main-card{padding:9px}
+  .costs-header{gap:8px}
+  .costs-header-actions{flex-shrink:0}
+  .costs-header-actions button{padding:7px 9px;font-size:12px;min-height:34px;border-radius:12px}
+  .costs-accordion{margin-top:9px!important}
+  .costs-accordion summary{font-size:14px;padding:9px 1px;min-height:38px}
+  .costs-accordion .accordion-body{padding:0 1px 7px}
+  .costs-accordion input{padding:7px 9px}
+  .costs-accordion label{margin-top:4px;font-size:11px}
+  .price-grid{grid-template-columns:1fr 105px;gap:5px}
+  .costs-header h2{font-size:18px}
+}
+
+/* v4 — visual inspired by the previous calculator: section cards + stacked compact options */
+@media(max-width:719px){
+  main{padding:7px 10px 82px}
+  .card{padding:12px 10px;margin:7px 0;border-radius:18px}
+  .card h3{font-size:15px;margin:8px 0 7px}
+  .card h2{font-size:18px}
+  .cols{grid-template-columns:1fr !important;gap:7px}
+  .choice{display:flex;align-items:center;min-height:0;padding:10px 13px;margin:0;border-radius:15px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+  .choice b{font-size:14px;line-height:1.2}
+  .choice small{font-size:11px;line-height:1.25;margin-top:2px}
+  label{font-size:11px;margin-top:5px}
+  input,select,textarea{padding:8px 9px;margin-top:4px;font-size:13px;border-radius:10px}
+  .form{gap:7px}
+  .result{padding:10px;margin-top:7px}
+  .line{padding:7px 0}
+  #artChoices{margin-bottom:7px}
+  #artChoices>.cols{padding:11px;border:1px solid var(--line);border-radius:18px;background:#fff}
+}
+
+/* Compact sheet counter used only for B · Diseño personalizado */
+.sheet-control{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  margin:6px 0 2px;padding:8px 10px;border:1.5px solid var(--line);
+  border-radius:14px;background:#fff;
+}
+.sheet-control .sheet-label{font-size:12px;font-weight:700;color:var(--ink)}
+.sheet-control .sheet-sub{display:block;font-size:10px;font-weight:500;color:var(--muted);margin-top:2px}
+.sheet-control .sheet-actions{display:flex;align-items:center;gap:5px}
+.sheet-control button{
+  width:30px;height:30px;min-width:30px;padding:0;border-radius:10px;
+  box-shadow:none;font-size:18px;line-height:1;
+}
+.sheet-control input{
+  width:48px;height:30px;margin:0;padding:3px 5px;text-align:center;
+  border-radius:10px;font-size:13px;font-weight:700;
+}
+
+
+/* Selector compacto del configurador: una sola columna, opciones en línea */
+.option-row{display:flex!important;grid-template-columns:none!important;gap:8px;align-items:stretch;margin-bottom:12px}
+.compact-choice{flex:1;min-width:0!important;display:flex!important;align-items:center;justify-content:center;text-align:center;padding:11px 8px!important;margin:0!important;min-height:48px!important}
+.compact-choice b{font-size:14px;white-space:nowrap}
+.paper-row .compact-choice{flex:1}
+.quantity-row .compact-choice{flex:1}
+.exact-quantity{margin-top:4px;margin-bottom:12px}
+.compact-builder h3{margin-bottom:8px}
+.card-inner-extra{margin-top:4px}
+@media(max-width:420px){.option-row{gap:6px}.compact-choice{padding:10px 5px!important}.compact-choice b{font-size:13px}.quantity-row .compact-choice b{font-size:12px}}
+.admin-quote-detail{
+  margin-top:8px;
+  padding:8px 10px;
+  border:1px dashed var(--line);
+  border-radius:10px;
+  background:#fafafa;
+  font-size:11px;
+  color:var(--muted);
+}
+.admin-quote-detail div{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  line-height:1.5;
+}
+.admin-quote-detail b{color:var(--ink)}
+
+.order-entregado{background:#f1f1f1 !important;color:#777;opacity:.78}.order-entregado b,.order-entregado small{color:#777 !important}.order-entregado .actions button{filter:grayscale(.35)}
+
+/* ===== Tema NOT: rosa #ff66c4 · celeste #20bad5 · amarillo #fdce43 ===== */
+:root{--pink:#ff66c4;--pink-600:#ee4fae;--pink-700:#b3277e;--pink-50:#ffeaf7;--sky:#20bad5;--sky-700:#0f7284;--sky-50:#dff6fa;--yellow:#fdce43;--yellow-50:#fff4c9;--bg:#fff;--cream:#fff;--line:#f3e6d4;--navh:66px}
+html,body{-webkit-text-size-adjust:100%;-moz-text-size-adjust:100%;text-size-adjust:100%}
+body{background:var(--cream)}
+.row>button{white-space:nowrap;flex:none}
+main,.page{background:transparent}
+main{padding:6px 10px 100px}
+header{background:#fff;border-bottom:4px solid;border-image:linear-gradient(90deg,#ff66c4,#20bad5,#fdce43) 1;padding:8px 14px;box-shadow:none;gap:10px}
+.logo{width:auto;height:42px}
+header .brand{display:none}
+header .muted{color:var(--pink-700);font-family:var(--font-display);font-weight:700;font-size:14px}
+h2,h3,.brand{font-family:var(--font-display);font-weight:800}
+h2{font-size:20px}h3{margin:10px 0 6px}
+.card{background:#fff;border:2px solid #ffd9f0;border-radius:24px;padding:12px;margin:8px 0;box-shadow:0 5px 0 rgba(255,102,196,.13)}
+.grid{gap:8px}
+.stat{position:relative;border:0;border-radius:24px;padding:12px 14px;margin:0;box-shadow:none;overflow:hidden}
+.stat::before{display:none}
+.stat::after{content:'';position:absolute;right:-16px;bottom:-16px;width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.55)}
+.stat.acc-pink{background:#ffd3ee}.stat.acc-sky{background:#c9f0f7}.stat.acc-green{background:#ffefb0}.stat.acc-ink{background:#ffe9f6;border:2px dashed #ff66c4}
+.stat strong{font-size:26px;font-weight:800;position:relative;z-index:1}
+.stat.acc-pink strong{color:var(--pink-700)}.stat.acc-sky strong{color:var(--sky-700)}.stat.acc-green strong{color:#7a5a00}.stat.acc-ink strong{color:var(--pink-700)}
+button{font-family:var(--font-display);font-weight:800;font-size:15px;border-radius:999px;padding:9px 16px}
+button:not(.soft):not(.sky):not(.yellow):not(.danger):not(.paid-btn):not(.pending-btn){background:linear-gradient(135deg,#ff66c4,#ff8fd6);box-shadow:0 4px 0 #d23fa0}
+button:not(.soft):not(.sky):not(.yellow):not(.danger):not(.paid-btn):not(.pending-btn):active{transform:translateY(3px);box-shadow:0 1px 0 #d23fa0}
+.sky{background:#c9f0f7;color:var(--sky-700)}.yellow{background:var(--yellow-50);color:#7a5a00}.soft{background:#fff0d6;color:#8a5a00}
+label{font-size:12px;font-weight:700;margin-bottom:3px;display:block}
+input,select,textarea{border:2px solid #f3e6d4!important;border-radius:16px!important;background:#fffdf7;padding:8px 11px;font-size:15px;font-family:var(--font-body);width:100%}
+input:focus,select:focus,textarea:focus{outline:0;border-color:var(--pink)!important;box-shadow:0 0 0 4px rgba(255,102,196,.18);background:#fff}
+textarea{min-height:56px}
+#nuevoPedido .form{display:grid!important;grid-template-columns:1fr 1fr;gap:8px}
+#nuevoPedido .form>div:has(#pNombre){grid-column:1/-1}
+.choice{border-radius:18px;border:2px solid #f3e6d4}.choice.active{border-color:var(--pink);background:var(--pink-50)}
+.order{border:0!important;border-left:8px solid var(--pink)!important;border-radius:20px!important;background:#fff;box-shadow:0 4px 0 rgba(255,102,196,.13)}
+.order-entregado{border-left-color:var(--sky)!important;opacity:.75}
+nav{left:0;right:0;bottom:0;background:#ff66c4;border:0!important;border-radius:0;box-shadow:none;overflow:visible;padding-top:4px}
+nav::before{content:'';position:absolute;left:0;right:0;top:-13px;height:14px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 14'%3E%3Cpath d='M0 7Q15 0 30 7T60 7V14H0Z' fill='%23ff66c4'/%3E%3C/svg%3E") repeat-x;background-size:60px 14px}
+nav .navinner{padding:3px}
+nav button{background:transparent!important;box-shadow:none!important;border-radius:20px;padding:5px 2px 6px;color:rgba(255,255,255,.9);font-size:10px}
+nav button.active{background:#fff!important;color:var(--pink-700)}
+nav button.active::before{display:none}
+nav span{height:22px;margin-bottom:0;font-size:18px}
+.stickybar{position:sticky;bottom:var(--navh);z-index:14;padding:8px 0 6px;margin:6px 0;background:linear-gradient(180deg,rgba(255,255,255,0),#fff 35%)}
+.stickybar button{flex:1;padding:11px 10px}
+#cartMini{background:var(--yellow-50);border:2px dashed var(--yellow);border-radius:18px;padding:9px 12px;font-size:14px;margin:8px 0}
+/* ===== Tamaño compacto ===== */
+body{font-size:14px}
+h2{font-size:17px}h3{font-size:14px}
+label{font-size:11.5px}
+button{font-size:13px;padding:7px 14px}
+.order .actions button{font-size:12px;padding:6px 11px}
+.stickybar button{padding:9px 10px}
+.stat strong{font-size:21px}
+.big{font-size:17px!important}
+input,select,textarea{font-size:14px;padding:7px 10px}
+.logo{height:36px}
+nav button{font-size:10px}
+.order .row b{font-size:14px}
+#pedidosLista .order{padding:8px 12px 7px;margin:6px 0;border-radius:16px!important;border-left-width:6px!important}
+#pedidosLista .order .actions button{font-size:11.5px;padding:4px 10px;box-shadow:none!important;white-space:nowrap}
+#pedidosLista .order summary{list-style:none}
+#inicioStock{margin:0}
+</style>
+</head>
+<body>
+<header>
+  <img class="logo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANsAAAB+CAYAAACtUmQdAAAA2GVYSWZJSSoACAAAAAgAGwEFAAEAAABuAAAAGgEFAAEAAAB2AAAAAAEEAAEAAADbAAAAAQEEAAEAAAB+AAAAEwIDAAEAAAABAAAAaYcEAAEAAAB+AAAAEgEDAAEAAAABAAAAKAEDAAEAAAACAAAAAAAAAGAAAAABAAAAYAAAAAEAAAAHAACQAgAEAAAAMDIxMACgBwAEAAAAMDEwMAGgAwABAAAA//8AAAKgBAABAAAA2wAAAAGRBwAEAAAAAQIDAAOgBAABAAAAfgAAAAiSBAABAAAAAAAAAAAAAACRiRf0AAAACXBIWXMAAA7EAAAOxAGVKw4bAAAMsWlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSI/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+Cjx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIFRlc3QuU05BUFNIT1QiPgogIDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+CiAgICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgICAgIHhtbG5zOkF0dHJpYj0iaHR0cDovL25zLmF0dHJpYnV0aW9uLmNvbS9hZHMvMS4wLyIKICAgICAgICB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iPgogICAgICA8QXR0cmliOkFkcz4KICAgICAgICA8cmRmOlNlcT4KICAgICAgICAgIDxyZGY6bGkKICAgICAgICAgICAgQXR0cmliOkNyZWF0ZWQ9IjIwMjYtMDktMjkiCiAgICAgICAgICAgIEF0dHJpYjpEYXRhPSJ7JnF1b3Q7ZG9jJnF1b3Q7OiZxdW90O0RBR1Z2ZTNDWDZJJnF1b3Q7LCZxdW90O3VzZXImcXVvdDs6JnF1b3Q7VUFEZlBlakJxdEkmcXVvdDssJnF1b3Q7YnJhbmQmcXVvdDs6JnF1b3Q7QkFHT2pBblI0V2cmcXVvdDt9IgogICAgICAgICAgICBBdHRyaWI6RXh0SWQ9ImI0N2NiMGJhLWI3NWMtNDZlMS04NjA5LTk2NTE1ZmRlZTc3OCIKICAgICAgICAgICAgQXR0cmliOkZiSWQ9IjUyNTI2NTkxNDE3OTU4MCIKICAgICAgICAgICAgQXR0cmliOlRvdWNoVHlwZT0iMiIvPgogICAgICAgICAgPHJkZjpsaQogICAgICAgICAgICBBdHRyaWI6RmJJZD0iNTI1MjY1OTE0MTc5NTgwIgogICAgICAgICAgICBBdHRyaWI6Q3JlYXRlZD0iMjAyNi0wOS0yOSIKICAgICAgICAgICAgQXR0cmliOlRvdWNoVHlwZT0iMiIKICAgICAgICAgICAgQXR0cmliOkV4dElkPSIyYjJjOTk3Ni1kMGQyLTRiOWMtODU2Zi00Y2Y0YzczY2JiNzkiLz4KICAgICAgICA8L3JkZjpTZXE+CiAgICAgIDwvQXR0cmliOkFkcz4KICAgICAgPGRjOnRpdGxlPgogICAgICAgIDxyZGY6QWx0PgogICAgICAgICAgPHJkZjpsaSB4bWw6bGFuZz0ieC1kZWZhdWx0Ij5TVE9SSUVTIE5PVEZPTUUuSSBhNCAtIDE8L3JkZjpsaT4KICAgICAgICA8L3JkZjpBbHQ+CiAgICAgIDwvZGM6dGl0bGU+CiAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICA8L3JkZjpSREY+CjwveDp4bXBtZXRhPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgCjw/eHBhY2tldCBlbmQ9InciPz6VY55VAAAgAElEQVR4nO19CXgb1bW/E0opLa+saRZbkm1SaKFAW6BlS2zZZmn/LKU0dGFNLMlZCEtpWUrB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" alt="NOT" onerror="this.alt='NOT';this.style.display='none'">
+  <div><div class="brand">NOT</div><div class="muted">Calculadora y gestión</div></div>
+</header>
+
+<main>
+<section id="inicio" class="page active">
+  <div class="card" id="inicioPrioridades"></div>
+  <div class="actions" style="margin-bottom:10px"><button class="soft" onclick="go('ajustes')">⚙ Ajustes y copias</button></div>
+  <div class="grid">
+    <div class="stat acc-pink"><small>Ventas activas</small><strong id="sVentas">$0</strong></div>
+    <div class="stat acc-sky"><small>Costos</small><strong id="sCostos">$0</strong></div>
+    <div class="stat acc-green"><small>Ganancias</small><strong id="sGanancias">$0</strong></div>
+    <div class="stat acc-ink"><small>Pedidos activos</small><strong id="sActivos">0</strong></div>
+  </div>
+  <div class="card">
+    <div class="row" style="align-items:center;margin-bottom:6px"><h2 style="margin:0;font-size:15px" title="Se descuenta solo al guardar un pedido">📦 Stock de papeles</h2><button class="soft" style="padding:4px 11px;font-size:11.5px;white-space:nowrap" onclick="go('costos')">＋ Compra</button></div>
+    <div id="inicioStock"></div>
+  </div>
+  <div class="card">
+    <div class="row"><div><h2>📋 Pedidos registrados</h2><small>Hacé click en un pedido para editarlo.</small></div><button onclick="go('pedidos')">+ Pedido</button></div>
+    <div id="inicioPedidos"></div>
+  </div>
+</section>
+
+<section id="calculadora" class="page">
+  <div class="card"><h2>🧮 Calculadora de Costos</h2><small>Calcula costo real y precio sugerido.</small>
+    <div class="form">
+      <div><label>Papel</label><select id="cPapel"></select></div>
+      <div><label>Hojas</label><input id="cHojas" type="number" min="1" value="1"></div>
+      <div><label>Tiempo por hoja (min)</label><input id="cTiempo" type="number" min="0" value="5"></div>
+      <div><label>Horas adicionales</label><input id="cHoras" type="number" min="0" value="0"></div>
+      <div><label>Minutos adicionales</label><input id="cMinutos" type="number" min="0" value="0"></div>
+      <div><label>Recargo sobre el costo (%)</label><input id="cMargen" type="number" min="0" value="50"></div>
+    </div>
+    <div id="calcOut" class="result"></div>
+  </div>
+</section>
+
+<section id="nuevoPedido" class="page">
+  <div class="card">
+    <div class="row"><div><h2 id="pedidoTitulo">🏷️ Nuevo Pedido</h2><small>Armá el carrito del cliente.</small></div><button class="soft" onclick="limpiarForm()">Limpiar form</button></div>
+    <div class="form"><div><label>Nombre del Cliente *</label><input id="pNombre"></div><div><label>Teléfono</label><input id="pTelefono"></div><div><label>Fecha de entrega *</label><input id="pEntrega" type="date"></div></div>
+    <h3>✨ Configurar artículo</h3><div id="artChoices"></div><div id="builder"></div>
+    <div class="result"><h3 style="margin-top:0">🧾 Cotización de este artículo</h3><div id="quote"></div><div class="row"><b>Subtotal</b><span id="total" class="big">$0</span></div><label style="margin-top:12px">📝 Detalle / personalización de este artículo</label><textarea id="itemDetalle" placeholder="Ej: nombre 'Sofi', color dorado, motivo unicornio..." style="min-height:60px"></textarea><button class="yellow" style="width:100%;margin-top:10px;font-size:16px" onclick="addToCart()">➕ Añadir artículo al pedido</button></div>
+    <div class="card"><h3 style="margin-top:0">📝 2. Detalles generales del pedido</h3><div class="form"><div><label>Estado del pedido</label><select id="pEstado"><option value="Pendiente">Pendiente</option><option value="Diseñado">Diseñado</option><option value="Entregado">Entregado</option></select></div><div><label>Seña / anticipo (primer pago; luego se cobra desde Pedidos)</label><input id="pSena" type="number" min="0" step="1" placeholder="$0"></div><div><label>Temática</label><input id="pTematica" placeholder="Ej: Bautismo, Anime..."></div><div><label>Medida general (opcional)</label><input id="pMedida"></div><div><label>Color general (opcional)</label><input id="pColor"></div></div><label>Notas generales (no específicas de un artículo)</label><textarea id="pDetalles"></textarea></div>
+    <div class="card" style="border-color:var(--pink-600); background:var(--pink-50); margin-top:15px"><h3 style="margin-top:0; color:var(--pink-700)">🛒 Carrito del pedido</h3><div id="carritoLista"></div><div class="row" style="margin-top:10px; border-top:2px solid var(--pink-600); padding-top:10px"><b>GRAN TOTAL</b><span id="granTotal" class="big" style="color:var(--pink-700)">$0</span></div></div>
+    <div class="actions" style="margin-top:15px"><button onclick="guardarPedido()">💾 Guardar Pedido Completo</button><button class="sky" id="btnShare" onclick="compartirActual()" type="button">📲 Compartir presupuesto</button><button class="danger" id="btnEliminarPedido" onclick="eliminarPedido()" style="display:none;">🗑️ Eliminar Pedido</button></div>
+  </div>
+</section>
+<section id="pedidos" class="page"><div class="card"><div class="row"><div><h2>📅 Pedidos</h2><small>Primero aparecen los que requieren atención: pago pendiente o entrega pendiente.</small></div><button onclick="abrirPedido()">＋ Nuevo pedido</button></div><div id="borradorBanner"></div><input id="buscaPedido" type="search" placeholder="🔍 Buscar por nombre, teléfono o Nº" oninput="renderOrders()" style="margin:10px 0"><div id="pedidosLista"></div></div></section>
+
+<section id="costos" class="page">
+  <div class="actions" style="margin-bottom:10px"><button class="soft" onclick="go('calculadora')">🧮 Abrir calculadora de presupuesto</button></div>
+  <div class="card costs-main-card">
+    <div class="row costs-header" style="align-items:center">
+      <div><h2>⚙️ Costos y precios</h2><small>Todo es editable y queda guardado.</small></div>
+      <div class="actions costs-header-actions" style="justify-content:flex-end">
+        <button class="sky" onclick="nuevoPedido();go('nuevoPedido')">🛍️ Crear pedido</button>
+        <button onclick="guardarCostos()">💾 Guardar</button>
+      </div>
+    </div>
+
+    <div class="costs-accordion" style="margin-top:14px">
+      <details>
+        <summary><span>📄 Precios de toppers</span></summary>
+        <div class="accordion-body">
+          <div class="price-grid"><label>Hoja A4 · diseño listo</label><input id="priceA" type="number"></div>
+          <div class="price-grid"><label>Hoja A4 · diseño personalizado</label><input id="priceB" type="number"></div>
+          <div class="price-grid"><label>Hasta 6 unidades · hojas</label><input id="mult6" type="number" step="0.01"></div>
+          <div class="price-grid"><label>Hasta 10 unidades · hojas</label><input id="mult10" type="number" step="0.01"></div>
+          <div class="price-grid"><label>Topper Simple · multiplicador</label><input id="styleSimple" type="number" step="0.01"></div>
+          <div class="price-grid"><label>Topper 3D · multiplicador</label><input id="style3d" type="number" step="0.01"></div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span>✨ Topper Metalizado Personalizado</span></summary>
+        <div class="accordion-body">
+          <div class="price-grid"><label>Nombres / palabras · $ por cm</label><input id="metalNames" type="number"></div>
+          <div class="price-grid"><label>Frases, iniciales y números · $ por cm</label><input id="metalPhrases" type="number"></div>
+          <div class="price-grid"><label>Figuras especiales · $ por cm</label><input id="metalFigures" type="number"></div>
+          <div class="price-grid"><label>💸 Costo hoja A3 (base para cortar)</label><input id="metalSheetCost" type="number"></div>
+          <div class="price-grid"><label>💸 Costo acetato 60x80cm</label><input id="metalAcetateCost" type="number"></div>
+          <small>El costo se calcula por cuadrado según la medida elegida. A3 = 29×42 cm (12 cuadrados de 10×10) y acetato = 60×80 cm (24 cuadrados de 10×10).</small>
+        </div>
+      </details>
+
+      <details>
+        <summary><span>➕ Extras</span></summary>
+        <div class="accordion-body">
+          <div class="price-grid"><label>Topper Premium · $ por hoja</label><input id="premiumPrice" type="number"></div>
+          <div class="price-grid"><label>Capa extra · $ por hoja</label><input id="extraLayer" type="number"></div>
+          <div class="price-grid"><label>Acetato</label><input id="acetatePrice" type="number"></div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span>🧁 Artículos adicionales</span></summary>
+        <div class="accordion-body">
+          <div id="artEditor"></div>
+          <button class="soft" onclick="addArticle()">＋ Agregar artículo</button>
+        </div>
+      </details>
+
+      <details>
+        <summary><span>📦 Costos reales</span></summary>
+        <div class="accordion-body">
+          <div class="form">
+            <div><label>Tinta $/litro</label><input class="cost" data-k="inkPrice" type="number"></div>
+            <div><label>Consumo tinta ml/hoja</label><input class="cost" data-k="inkMl" type="number"></div>
+            <div><label>Electricidad $/kWh</label><input class="cost" data-k="electricity" type="number"></div>
+            <div><label>Consumo impresora kW</label><input class="cost" data-k="printerKw" type="number"></div>
+            <div><label>Costo impresora</label><input class="cost" data-k="printerCost" type="number"></div>
+            <div><label>Vida útil en hojas</label><input class="cost" data-k="printerLife" type="number"></div>
+            <div><label>Otros $/hoja</label><input class="cost" data-k="other" type="number"></div>
+            <div><label>Valor hora de trabajo</label><input class="cost" data-k="hour" type="number"></div>
+            <div><label>Recargo predeterminado sobre el costo %</label><input class="cost" data-k="margin" type="number"></div>
+            <div><label>Tiempo prom. de impresión por hoja (min)</label><input class="cost" data-k="avgTimePerSheet" type="number"></div>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span>🖋️ Registro de compra de tinta</span></summary>
+        <div class="accordion-body">
+          <small>Cada compra actualiza el costo de tinta $/litro de referencia.</small>
+          <div class="form">
+            <div><label>Fecha</label><input id="inkBuyDate" type="date"></div>
+            <div><label>Precio pagado</label><input id="inkBuyPrice" type="number" placeholder="$"></div>
+            <div><label>Mililitros comprados</label><input id="inkBuyMl" type="number" placeholder="ml"></div>
+          </div>
+          <button class="soft" onclick="addInkPurchase()">➕ Agregar compra</button>
+          <div id="inkPurchaseList"></div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span>📃 Papeles</span></summary>
+        <div class="accordion-body">
+          <div id="paperEditor"></div>
+          <button class="soft" onclick="addPaper()">＋ Agregar papel</button>
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+<section id="balance" class="page">
+  <div class="card">
+    <h2>📊 Balance</h2><small>Resumen de gastos y ganancias del período. Por defecto muestra el mes corrido hasta hoy.</small>
+    <div class="form">
+      <div><label>Desde</label><input id="balDesde" type="date" onchange="renderBalance()"></div>
+      <div><label>Hasta</label><input id="balHasta" type="date" onchange="renderBalance()"></div>
+    </div>
+    <div class="actions" style="margin-top:10px">
+      <button class="soft" onclick="balRange('month')">Este mes</button>
+      <button class="soft" onclick="balRange('lastmonth')">Mes anterior</button>
+      <button class="soft" onclick="balRange('year')">Este año</button>
+      <button class="soft" onclick="balRange('all')">Todo</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="stat acc-pink"><small>Ingresos</small><strong id="balVentas">$0</strong></div>
+    <div class="stat acc-sky"><small>Costos</small><strong id="balCostosStat">$0</strong></div>
+    <div class="stat acc-green"><small>Ganancia</small><strong id="balGanancia">$0</strong></div>
+    <div class="stat acc-yellow"><small>Gastado (compras)</small><strong id="balGastado">$0</strong></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">📈 Evolución en el período</h3>
+    <div id="balChart" style="overflow-x:auto"></div>
+    <div class="row" style="margin-top:8px;font-size:12px;color:var(--muted);justify-content:flex-start;gap:16px">
+      <span><span style="color:var(--pink)">●</span> Ingresos</span><span><span style="color:var(--sky)">●</span> Costos</span><span><span style="color:var(--yellow)">●</span> Gasto</span>
+    </div>
+  </div>
+
+  <div class="card" style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;justify-content:center">
+    <div id="balDonut"></div>
+    <div id="balDonutLegend" style="font-size:13px"></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">🏷️ Pedidos por producto</h3><small>Cantidad, costo real y ganancia de cada producto en el período.</small>
+    <div id="balProductos" style="margin-top:10px"></div>
+  </div>
+
+  <div class="result">
+    <h3 style="margin-top:0">📋 Detalle del período</h3>
+    <div id="balDetalle"></div>
+  </div>
+</section>
+
+<section id="ajustes" class="page">
+  <div class="card"><h2>⚙️ Ajustes</h2>
+    <div class="card"><h3 style="margin-top:0">☁️ Sincronización con Google Drive</h3>
+    <small>Cada vez que guardás un pedido, se envía a tu Hoja de Drive. Es de <b>una sola dirección: de la app hacia Drive</b> — nunca al revés, así tus datos locales nunca se pisan.</small>
+    <div class="form" style="margin-top:8px"><div><label>URL del Web App (Apps Script)</label><input id="driveSyncUrl" placeholder="https://script.google.com/macros/s/AKfycb.../exec"></div></div>
+    <div class="actions" style="margin-top:8px"><button class="sky" onclick="guardarDriveUrl()">Guardar URL</button><button class="soft" onclick="syncAllToDrive(true)">🔄 Sincronizar ahora</button></div>
+    <div id="syncStatus" style="margin-top:8px;font-size:12.5px;color:var(--muted)"></div>
+    </div>
+    <div class="card"><h3 style="margin-top:0">📊 Excel</h3><small>Exporta un archivo CSV compatible con Excel con el detalle de artículos vendidos, costos y ganancias.</small><br><button class="sky" onclick="exportCSV()">📥 Exportar datos</button></div>
+    <div class="card"><h3 style="margin-top:0">💾 Copia de seguridad completa</h3><small>Exportá o restaurá TODOS los datos (pedidos, precios, stock, artículos) en un archivo. Útil si cambiás de celular y no querés cargar todo de nuevo.</small><br>
+    <div class="actions" style="margin-top:8px">
+    <button class="sky" onclick="exportJSON()">📤 Exportar copia</button>
+    <button class="soft" onclick="document.getElementById('importFile').click()">📥 Importar copia</button>
+    </div>
+    <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importJSONFile(this)">
+    </div>
+    <div class="card"><h3 style="margin-top:0">🧹 Limpiar Pedidos</h3><small>Borra el historial de pedidos pero mantiene todos tus precios y configuraciones.</small><br><button class="yellow" onclick="resetPedidos()">Limpiar pedidos</button></div>
+    <div class="card"><h3 style="margin-top:0">♻️ Resetear</h3><small>Borra TODO (pedidos y precios) y vuelve a la configuración inicial de la app.</small><br><button class="danger" onclick="resetApp()">Resetear app completa</button></div>
+  </div>
+</section>
+</main>
+
+<nav><div class="navinner">
+<button data-page="inicio" class="active" onclick="go('inicio')"><span>⌂</span>Inicio</button>
+<button data-page="nuevoPedido" onclick="abrirPedido()"><span>＋</span>Nuevo</button>
+<button data-page="pedidos" onclick="go('pedidos')"><span>▣</span>Pedidos</button>
+<button data-page="costos" onclick="go('costos')"><span>◈</span>Costos</button>
+<button data-page="calculadora" onclick="go('calculadora')"><span>▦</span>Calculadora</button>
+<button data-page="balance" onclick="go('balance')"><span>◒</span>Balance</button>
+</div></nav>
+
+<script>
+const KEY='NOT_FINAL_2026_V5';
+const initial={
+  prices:{A:3500,B:5500,mult6:1,mult10:1.4,simple:1,threeD:2.5,metalNames:400,metalPhrases:600,metalFigures:850,metalSheetCost:1300,metalAcetateCost:2100,premium:7000,layer:2000,acetate:1000},
+  articles:[
+    {name:'Hoja Personalizada',price:1500,materialCost:0,desc:'Hoja de papelería personalizada'},
+    {name:'Sticker',price:1800,materialCost:0,desc:'Sticker personalizado'}
+  ],
+  papers:[{name:'Papel Glossy 180g',packPrice:104,packQty:1,stock:56},{name:'Stickers',packPrice:176.46,packQty:1,stock:150}],
+  costs:{inkPrice:19500,inkMl:1.1,electricity:183,printerKw:.12,printerCost:600000,printerLife:30000,other:0,hour:5300,margin:100,avgTimePerSheet:5},
+  orders:[],
+  inkPurchases:[],
+  driveSyncUrl:''
+};
+let db=JSON.parse(localStorage.getItem(KEY)||'null')||JSON.parse(JSON.stringify(initial));
+db.driveSyncUrl = db.driveSyncUrl || '';
+db.prices=Object.assign({metalSheetCost:0,metalAcetateCost:0},db.prices||{});
+db.articles=(db.articles||[]).map(a=>Object.assign({materialCost:0},a));
+// Si un artículo existente no tiene papel asociado, asignarlo por defecto según su nombre.
+// Esto permite calcular automáticamente papel + servicios sin perder el costo material manual.
+const __glossy=db.papers.find(p=>/glossy/i.test(p.name));
+const __sticker=db.papers.find(p=>/sticker/i.test(p.name));
+db.articles.forEach(a=>{
+  if(a.paperId==null){
+    a.paperId = /sticker/i.test(a.name) ? (__sticker?.id ?? null) : (__glossy?.id ?? db.papers[0]?.id ?? null);
+  }
+});
+db.orders=(db.orders||[]).map(o=>Object.assign({cost:0,materialSheets:0,paid:false,sena:0},o));
+db.orders.forEach(o=>{ if(!Array.isArray(o.payments)){ o.payments=[]; const d=new Date().toISOString().slice(0,10); const se=Number(o.sena)||0; if(se>0) o.payments.push({date:d,amount:se,method:'Seña'}); if(o.paid&&(Number(o.total)||0)>se) o.payments.push({date:d,amount:round2((Number(o.total)||0)-se),method:'Saldo'}); syncPay(o);} if(!o.snap) snapConsumo(o); });
+db.papers=db.papers||[];
+db.inkPurchases=db.inkPurchases||[];
+db.freeArticleCatalog=db.freeArticleCatalog||[];
+db.costs.avgTimePerSheet=(typeof db.costs.avgTimePerSheet==='number')?db.costs.avgTimePerSheet:5;
+if(!db.papers.some(p=>p.name==='Stickers')){
+  db.papers.push({name:'Stickers',packPrice:db.prices.costStickerSheet||0,packQty:1});
+}
+delete db.prices.costStickerSheet;
+// Asegura que "Hoja Personalizada" y "Sticker" existan siempre como artículos rápidos,
+// aunque el dispositivo ya tuviera datos guardados de antes.
+if(!db.articles.some(a=>/hoja personalizada/i.test(a.name))){
+  db.articles.push({name:'Hoja Personalizada',price:1500,materialCost:0,desc:'Hoja de papelería personalizada',paperId:(__glossy?.id ?? db.papers[0]?.id ?? null)});
+}
+if(!db.articles.some(a=>/^sticker/i.test(a.name))){
+  db.articles.push({name:'Sticker',price:1800,materialCost:0,desc:'Sticker personalizado',paperId:(__sticker?.id ?? null)});
+}
+// Migración: id estable, stock y compras por papel
+let __maxPaperId=0;
+db.papers.forEach(p=>{ if(p.id) __maxPaperId=Math.max(__maxPaperId,p.id); });
+db.papers.forEach(p=>{
+  if(!p.id){ __maxPaperId++; p.id=__maxPaperId; }
+  if(typeof p.stock!=='number') p.stock=0;
+  if(!Array.isArray(p.purchases)) p.purchases=[];
+});
+if(typeof db.nextPaperId!=='number') db.nextPaperId=__maxPaperId+1;
+// Vincular artículos existentes a un papel por defecto (heurística por nombre)
+db.articles.forEach(a=>{
+  if(typeof a.paperId==='undefined'){
+    const guess=db.papers.find(p=>a.name.toLowerCase().includes(p.name.toLowerCase().split(' ')[0].toLowerCase()));
+    a.paperId = guess ? guess.id : (db.papers[0]?db.papers[0].id:null);
+  }
+});
+
+// Migración para asignar números a pedidos viejos si no los tienen
+if (typeof db.lastOrderNumber === 'undefined') {
+    db.lastOrderNumber = 0;
+    db.orders.forEach(o => {
+        db.lastOrderNumber++;
+        if(!o.orderNumber) o.orderNumber = db.lastOrderNumber;
+    });
+}
+db.orders.forEach(o=>{ if(!o.registeredISO) o.registeredISO = parseRegistered(o.registered) || new Date().toISOString().slice(0,10); });
+
+let editId=null, selected=null;
+let currentCart=[]; 
+let topper={type:'A',mode:'6',qty:6,sheets:1,style:'simple',premium:false,premiumColor:'dorado',layer:false,acetate:false,paperId:(db.papers[0]?db.papers[0].id:null)};
+let metal={type:'names',size:'10',custom:10};
+let freeArt={name:'',price:0,pricePerSheet:0,sheets:1,paperId:(__glossy?.id ?? (db.papers[0]?db.papers[0].id:null))};
+
+const $=id=>document.getElementById(id);
+const money=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:2}).format(Number(n)||0);
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+const save=()=>{localStorage.setItem(KEY,JSON.stringify(db));scheduleSync();};
+const clone=o=>JSON.parse(JSON.stringify(o));
+
+function go(page){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$(page).classList.add('active');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));renderAll();window.scrollTo(0,0)}
+
+function nuevoPedido(){
+    editId=null; selected=null; currentCart=[];
+    topper={type:'A',mode:'6',qty:6,sheets:1,style:'simple',premium:false,premiumColor:'dorado',layer:false,acetate:false,paperId:(db.papers[0]?db.papers[0].id:null)};
+    metal={type:'names',size:'10',custom:10};
+    freeArt={name:'',price:0,pricePerSheet:0,sheets:1,paperId:(__glossy?.id ?? (db.papers[0]?db.papers[0].id:null))};
+    ['pNombre','pTelefono','pEntrega','pTematica','pMedida','pColor','pDetalles'].forEach(x=>$(x).value='');
+    $('pEstado').value = 'Pendiente';
+    $('pedidoTitulo').textContent='🏷️ Nuevo Pedido';
+    if($('btnEliminarPedido')) $('btnEliminarPedido').style.display='none';
+    if($('btnShare')) $('btnShare').style.display='inline-block';
+    renderCarrito();
+    renderAll();
+}
+
+function unitPaper(p){return p?Number(p.packPrice||0)/Math.max(1,Number(p.packQty)||1):0}
+function round2(n){return Math.round(n*100)/100}
+function costBreakdown(paper, sheets){
+  sheets = Number(sheets)||0;
+  const papelC = paper?unitPaper(paper)*sheets:0;
+  const tintaC = (db.costs.inkPrice||0)/1000*(db.costs.inkMl||0)*sheets;
+  const t = db.costs.avgTimePerSheet||0;
+  const elecC = (db.costs.electricity||0)*(db.costs.printerKw||0)/60*t*sheets;
+  const desgasteC = db.costs.printerLife?(db.costs.printerCost||0)/db.costs.printerLife*sheets:0;
+  const otrosC = (db.costs.other||0)*sheets;
+  // La mano de obra NO forma parte del costo real de impresión por hoja.
+  // Se conserva el valor hora para otros cálculos, pero no se suma aquí.
+  const parts=[['Papel',papelC],['Tinta',tintaC],['Electricidad',elecC],['Desgaste',desgasteC],['Otros',otrosC]];
+  const total=parts.reduce((a,x)=>a+(Number(x[1])||0),0);
+  return {parts, total};
+}
+function parseRegistered(s){
+  if(!s) return null;
+  const parts=String(s).split('/');
+  if(parts.length!==3) return null;
+  return `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+}
+
+/* --- PAGOS: o.payments es la fuente de verdad; o.sena y o.paid se derivan --- */
+function snapConsumo(o){
+  let h=0;(o.items||[]).forEach(it=>{h+=Number(it.quote&&it.quote.materialSheets)||0;});
+  const t=db.costs.avgTimePerSheet||0, ml=h*(db.costs.inkMl||0), kwh=h*((db.costs.printerKw||0)/60*t);
+  o.snap={hojas:h,inkMl:ml,inkCost:ml/1000*(db.costs.inkPrice||0),kwh:kwh,luzCost:kwh*(db.costs.electricity||0)};
+}
+function uiModal(html,read){return new Promise(res=>{
+  const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;background:rgba(36,31,43,.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px';
+  o.innerHTML='<div style="background:#fff;border:3px solid #ffd9f0;border-radius:24px;padding:18px;width:100%;max-width:360px;box-shadow:0 8px 0 rgba(255,102,196,.2)">'+html+'<div class="actions" style="margin-top:14px"><button type="button" class="soft" data-k="0" style="flex:1">Cancelar</button><button type="button" data-k="1" style="flex:1">Aceptar</button></div></div>';
+  document.body.appendChild(o);
+  const done=v=>{o.remove();res(v);};
+  o.querySelector('[data-k="0"]').onclick=()=>done(null);
+  o.querySelector('[data-k="1"]').onclick=()=>done(read?read(o):true);
+  o.onclick=e=>{if(e.target===o)done(null);};
+});}
+async function askOk(msg){return !!(await uiModal('<div style="white-space:pre-line;font-size:15px;font-weight:600">'+esc(msg)+'</div>'));}
+function askPago(saldo){return uiModal('<div style="font-weight:800;font-size:18px;margin-bottom:6px">💵 Registrar cobro</div><small>Saldo pendiente: <b>'+money(saldo)+'</b></small><label style="margin-top:10px">Importe cobrado</label><input id="pgMonto" type="number" inputmode="decimal" min="0" step="any" value="'+(saldo||'')+'"><label style="margin-top:8px">Medio de pago</label><select id="pgMedio"><option>Efectivo</option><option>Transferencia</option><option>Mercado Pago</option><option>Otro</option></select>',o=>({amount:round2(Number(o.querySelector('#pgMonto').value)),method:o.querySelector('#pgMedio').value}));}
+window.alert=function(m){let t=document.getElementById('toastBox');if(!t){t=document.createElement('div');t.id='toastBox';t.style.cssText='position:fixed;left:12px;right:12px;bottom:84px;z-index:300;background:#241f2b;color:#fff;border-radius:18px;padding:12px 14px;font-weight:700;text-align:center;font-size:14px';document.body.appendChild(t);}t.textContent=m;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>{t.style.display='none';},3200);};
+function paidTotal(o){return round2((o.payments||[]).reduce((a,p)=>a+(Number(p.amount)||0),0));}
+function syncPay(o){o.payments=o.payments||[];o.sena=paidTotal(o);o.paid=(Number(o.total)||0)>0&&o.sena>=(Number(o.total)||0);}
+function saldoDe(o){return Math.max(0,round2((Number(o.total)||0)-paidTotal(o)));}
+function stockFaltante(newItems,oldItems){
+  const need={};
+  const add=(items,k)=>(items||[]).forEach(i=>{const sh=Number(i.quote&&i.quote.materialSheets)||0;if(i.paperId!=null&&sh>0)need[i.paperId]=(need[i.paperId]||0)+k*sh;});
+  add(newItems,1);add(oldItems,-1);
+  const out=[];
+  Object.keys(need).forEach(id=>{const p=db.papers.find(x=>String(x.id)===String(id));if(p&&need[id]>0&&round2((p.stock||0)-need[id])<0)out.push(`${p.name}: quedaría en ${round2((p.stock||0)-need[id])} hojas`);});
+  return out;
+}
+async function registrarPago(id){
+  const o=db.orders.find(x=>Number(x.id)===Number(id));if(!o)return;
+  const saldo=saldoDe(o);
+  const r=await askPago(saldo); if(!r) return;
+  if(!(r.amount>0)){alert('Ingresá un importe mayor a 0.');return;}
+  if(r.amount>saldo&&!(await askOk('El importe supera el saldo ('+money(saldo)+'). ¿Registrarlo igual?')))return;
+  o.payments=o.payments||[];
+  o.payments.push({date:new Date().toISOString().slice(0,10),amount:r.amount,method:r.method||'Efectivo'});
+  syncPay(o);save();renderAll();
+}
+async function borrarPago(id,i){
+  const o=db.orders.find(x=>Number(x.id)===Number(id));if(!o||!o.payments||!o.payments[i])return;
+  if(!await askOk('¿Borrar este pago de '+money(o.payments[i].amount)+'?'))return;
+  o.payments.splice(i,1);syncPay(o);save();renderAll();
+}
+function adjustStock(items, sign){
+  (items||[]).forEach(item=>{
+    const pid = item.paperId;
+    const sheets = Number(item.quote && item.quote.materialSheets) || 0;
+    if(pid!=null && sheets>0){
+      const paper = db.papers.find(p=>p.id===pid);
+      if(paper) paper.stock = round2((paper.stock||0) + sign*sheets);
+    }
+  });
+}
+
+function addPurchase(i){
+  const paper = db.papers[i]; if(!paper) return;
+  const date = $('buyDate_'+i).value || new Date().toISOString().slice(0,10);
+  const price = +$('buyPrice_'+i).value || 0;
+  const qty = +$('buyQty_'+i).value || 0;
+  if(qty<=0){alert('Ingresá la cantidad de hojas compradas.');return;}
+  paper.purchases = paper.purchases || [];
+  paper.purchases.unshift({date, price, qty});
+  paper.stock = round2((paper.stock||0) + qty);
+  paper.packPrice = price; paper.packQty = qty; // el costo de referencia pasa a ser el de la última compra
+  save(); renderAll();
+}
+async function deletePaperPurchase(pi, ji){
+  const paper = db.papers[pi]; if(!paper || !paper.purchases || !paper.purchases[ji]) return;
+  if(!await askOk('¿Eliminar esta compra? Se descontará del stock lo que había sumado.')) return;
+  const c = paper.purchases[ji];
+  paper.stock = round2((paper.stock||0) - (Number(c.qty)||0));
+  paper.purchases.splice(ji,1);
+  save(); renderAll();
+}
+function addInkPurchase(){
+  const date = $('inkBuyDate').value || new Date().toISOString().slice(0,10);
+  const price = +$('inkBuyPrice').value || 0;
+  const ml = +$('inkBuyMl').value || 0;
+  if(ml<=0){alert('Ingresá los mililitros comprados.');return;}
+  db.inkPurchases = db.inkPurchases||[];
+  db.inkPurchases.unshift({date, price, ml});
+  db.costs.inkPrice = round2(price/ml*1000); // costo de referencia $/litro según última compra
+  $('inkBuyPrice').value=''; $('inkBuyMl').value='';
+  save(); renderAll();
+  alert('Compra de tinta registrada.');
+}
+async function deleteInkPurchase(j){
+  if(!await askOk('¿Eliminar esta compra de tinta?')) return;
+  db.inkPurchases.splice(j,1); save(); renderAll();
+}
+function renderInkPurchases(){
+  if(!$('inkPurchaseList')) return;
+  if($('inkBuyDate') && !$('inkBuyDate').value) $('inkBuyDate').value=new Date().toISOString().slice(0,10);
+  const list = db.inkPurchases||[];
+  $('inkPurchaseList').innerHTML = list.length ? `<div style="margin-top:10px;font-size:12px;color:var(--muted)">${list.map((c,j)=>`<div class="row" style="padding:4px 0"><span>📅 ${c.date.split('-').reverse().join('/')} · ${c.ml} ml · ${money(c.price)}</span><button class="danger" style="padding:3px 8px;font-size:10px" onclick="deleteInkPurchase(${j})">✕</button></div>`).join('')}</div>` : '<div class="empty">Sin compras registradas.</div>';
+}
+function calc(){
+ const sel=$('cPapel').value; const p=db.papers[Number(sel)||0]||db.papers[0]; const q=Math.max(1,Number($('cHojas').value)||1),t=Number($('cTiempo').value)||0,h=Number($('cHoras').value)||0,m=Number($('cMinutos').value)||0,mg=Number($('cMargen').value)||0;
+ const parts=[['Papel',unitPaper(p)*q],['Tinta',db.costs.inkPrice/1000*db.costs.inkMl*q],['Electricidad',db.costs.electricity*db.costs.printerKw/60*t*q],['Desgaste',db.costs.printerLife?db.costs.printerCost/db.costs.printerLife*q:0],['Otros',db.costs.other*q],['Mano de obra',db.costs.hour*(h+m/60)]];
+ const c=parts.reduce((a,x)=>a+x[1],0),v=c*(1+mg/100);
+ $('calcOut').innerHTML=parts.map(x=>`<div class="row line"><span>${x[0]}</span><b>${money(x[1])}</b></div>`).join('')+`<div class="row"><b>COSTO REAL</b><b>${money(c)}</b></div><div class="row"><span>Precio sugerido</span><b class="big">${money(v)}</b></div><div class="row"><span>Ganancia</span><b>${money(v-c)}</b></div>`;
+}
+
+function renderPriceInputs(){
+ const p=db.prices;[['priceA',p.A],['priceB',p.B],['mult6',p.mult6],['mult10',p.mult10],['styleSimple',p.simple],['style3d',p.threeD],['metalNames',p.metalNames],['metalPhrases',p.metalPhrases],['metalFigures',p.metalFigures],['metalSheetCost',p.metalSheetCost||0],['metalAcetateCost',p.metalAcetateCost||0],['premiumPrice',p.premium],['extraLayer',p.layer],['acetatePrice',p.acetate]].forEach(([id,v])=>$(id).value=v);
+ document.querySelectorAll('.cost').forEach(i=>i.value=db.costs[i.dataset.k]);
+ $('artEditor').innerHTML=db.articles.map((a,i)=>`<div class="card"><div class="form"><div><label>Artículo</label><input class="an" data-i="${i}" value="${esc(a.name)}"></div><div><label>Precio unitario</label><input class="ap" data-i="${i}" type="number" value="${a.price}"></div><div><label>Costo material</label><input class="ac" data-i="${i}" type="number" value="${a.materialCost||0}"></div><div><label>Descripción</label><input class="ad" data-i="${i}" value="${esc(a.desc)}"></div><div><label>Papel asociado (para descontar stock)</label><select class="apap" data-i="${i}"><option value="">Ninguno</option>${db.papers.map(p=>`<option value="${p.id}" ${a.paperId===p.id?'selected':''}>${esc(p.name)}</option>`).join('')}</select></div></div><br><button class="danger" onclick="deleteArticle(${i})">Eliminar artículo</button></div>`).join('');
+ $('paperEditor').innerHTML=db.papers.map((p,i)=>`<div class="card">
+   <div class="form">
+     <div><label>Papel</label><input class="pn" data-i="${i}" value="${esc(p.name)}"></div>
+     <div><label>Precio paquete (referencia)</label><input class="pp" data-i="${i}" type="number" value="${p.packPrice}"></div>
+     <div><label>Hojas por paquete</label><input class="pq" data-i="${i}" type="number" value="${p.packQty}"></div>
+     <div><label>📦 Stock actual (hojas)</label><input class="pst" data-i="${i}" type="number" value="${p.stock||0}"></div>
+   </div>
+   <div class="section-title" style="margin-top:14px;font-size:13px">🧾 Registrar compra</div>
+   <div class="form">
+     <div><label>Fecha</label><input id="buyDate_${i}" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+     <div><label>Precio pagado</label><input id="buyPrice_${i}" type="number" placeholder="$"></div>
+     <div><label>Hojas compradas</label><input id="buyQty_${i}" type="number" placeholder="0"></div>
+   </div>
+   <button class="soft" style="margin-top:8px" onclick="addPurchase(${i})">➕ Agregar compra</button>
+   ${(p.purchases&&p.purchases.length)?`<div style="margin-top:10px;font-size:12px;color:var(--muted)">${p.purchases.map((c,j)=>`<div class="row" style="padding:4px 0"><span>📅 ${c.date.split('-').reverse().join('/')} · ${c.qty} hojas · ${money(c.price)}</span><button class="danger" style="padding:3px 8px;font-size:10px" onclick="deletePaperPurchase(${i},${j})">✕</button></div>`).join('')}</div>`:''}
+   <br><button class="danger" style="margin-top:10px" onclick="deletePaper(${i})">Eliminar papel</button>
+ </div>`).join('');
+}
+function guardarCostos(){
+ const p=db.prices;p.A=+$('priceA').value;p.B=+$('priceB').value;p.mult6=+$('mult6').value;p.mult10=+$('mult10').value;p.simple=+$('styleSimple').value;p.threeD=+$('style3d').value;p.metalNames=+$('metalNames').value;p.metalPhrases=+$('metalPhrases').value;p.metalFigures=+$('metalFigures').value;p.metalSheetCost=+$('metalSheetCost').value;p.metalAcetateCost=+$('metalAcetateCost').value;p.premium=+$('premiumPrice').value;p.layer=+$('extraLayer').value;p.acetate=+$('acetatePrice').value;
+ document.querySelectorAll('.cost').forEach(i=>db.costs[i.dataset.k]=+i.value||0);
+ document.querySelectorAll('.an').forEach(i=>db.articles[i.dataset.i].name=i.value);document.querySelectorAll('.ap').forEach(i=>db.articles[i.dataset.i].price=+i.value||0);document.querySelectorAll('.ac').forEach(i=>db.articles[i.dataset.i].materialCost=+i.value||0);document.querySelectorAll('.ad').forEach(i=>db.articles[i.dataset.i].desc=i.value);document.querySelectorAll('.apap').forEach(i=>db.articles[i.dataset.i].paperId=i.value?+i.value:null);
+ document.querySelectorAll('.pn').forEach(i=>db.papers[i.dataset.i].name=i.value);document.querySelectorAll('.pp').forEach(i=>db.papers[i.dataset.i].packPrice=+i.value||0);document.querySelectorAll('.pq').forEach(i=>db.papers[i.dataset.i].packQty=+i.value||1);document.querySelectorAll('.pst').forEach(i=>db.papers[i.dataset.i].stock=+i.value||0);
+ save();alert('Precios y costos guardados.');renderAll()
+}
+
+function addArticle(){db.articles.push({name:'Nuevo artículo',price:0,materialCost:0,desc:'',paperId:(db.papers[0]?db.papers[0].id:null)});save();renderAll()}
+async function deleteArticle(i){if(await askOk('¿Seguro que querés eliminar este artículo?')){db.articles.splice(i,1);save();renderAll()}}
+function addPaper(){db.papers.push({id:db.nextPaperId++,name:'Nuevo papel',packPrice:0,packQty:1,stock:0,purchases:[]});save();renderAll()}
+async function deletePaper(i){if(await askOk('¿Seguro que querés eliminar este papel? Los artículos o toppers que lo tenían asignado van a dejar de descontar stock.')){db.papers.splice(i,1);save();renderAll()}}
+
+function renderChoices(){
+ $('artChoices').innerHTML=`<div class="card" style="margin-top:0">
+   <h3 style="margin-top:0">Artículo:</h3>
+   <div class="cols">
+    <div class="choice ${selected==='topper'?'active':''}" onclick="selectProduct('topper')"><div><b>🎂 Set Topper</b><small>Topper en hoja A4</small></div></div>
+    <div class="choice ${selected==='metal'?'active':''}" onclick="selectProduct('metal')"><div><b>✨ Topper Metalizado</b><small>Cartón metalizado</small></div></div>
+    ${db.articles.map((a,i)=>`<div class="choice ${selected==='article:'+i?'active':''}" onclick="selectProduct('article:${i}')"><div><b>${esc(a.name)}</b><small>${money(a.price)}</small></div></div>`).join('')}
+    <div class="choice ${selected==='free'?'active':''}" onclick="selectProduct('free')"><div><b>✏️ Artículo nuevo</b><small>Pedido personalizado</small></div></div>
+   </div>
+ </div>`;
+}
+function selectProduct(x){selected=x;renderChoices();renderBuilder()}
+
+function topperSheets(){
+  if(topper.mode==='6') return 1;
+  if(topper.mode==='10') return 1.4;
+  const q=Math.max(1,Number(topper.qty)||1);
+  return Math.max(1,Math.ceil(q/6));
+}
+function topperQuote(){
+ const sheets=topperSheets(),base=sheets*(topper.type==='A'?db.prices.A:db.prices.B);
+ const paperSel=db.papers.find(p=>p.id===topper.paperId);
+ const cb=costBreakdown(paperSel,sheets);
+ let total=base,cost=cb.total;
+ let lines=[['Base A4',`${sheets.toFixed(2)} hojas`,base]];
+ if(topper.style==='3d'){const add=base*(db.prices.threeD-1);total+=add;lines.push(['Topper 3D',`×${db.prices.threeD}`,add])}
+ if(topper.type==='B'&&topper.premium){const v=db.prices.premium;total+=v;lines.push(['Premium',`Adicional`,v])}
+ if(topper.type==='B'&&topper.layer){const v=db.prices.layer;total+=v;lines.push(['Capa extra',`Adicional`,v])}
+ if(topper.type==='B'&&topper.acetate){total+=db.prices.acetate;lines.push(['Acetato','Parte transparente',db.prices.acetate])}
+ return {total,cost,costParts:cb.parts,materialSheets:sheets,lines,quantity:topper.mode==='exact'?topper.qty:topper.mode==='6'?6:10}
+}
+function renderBuilder(){
+ if(!selected){$('builder').innerHTML='<div class="notice">Seleccioná un artículo de arriba.</div>';updateQuote();return}
+ if(selected==='topper'){
+  $('builder').innerHTML=`
+  <div class="card compact-builder">
+    <h3 style="margin-top:0">📄 Papel</h3>
+    <div class="option-row paper-row">${db.papers.map(p=>`<div class="choice compact-choice ${topper.paperId===p.id?'active':''}" onclick="setTop('paperId',${p.id})"><b>${esc(p.name)}</b></div>`).join('')}</div>
+
+    <h3>🪄 Diseño</h3>
+    <div class="option-row design-row">
+      <div class="choice compact-choice ${topper.type==='A'?'active':''}" onclick="setTop('type','A')"><b>Diseño listo ✅</b></div>
+      <div class="choice compact-choice ${topper.type==='B'?'active':''}" onclick="setTop('type','B')"><b>Personalizado 🪄</b></div>
+    </div>
+    <div class="sheet-control">
+      <div><span class="sheet-label">Hojas utilizadas</span><span class="sheet-sub">Solo registra el consumo real.</span></div>
+      <div class="sheet-actions"><button class="soft" type="button" onclick="changeTopSheets(-1)">−</button><input type="number" min="1" step="1" value="${topper.sheets}" oninput="topper.sheets=Math.max(1,+this.value||1);updateQuote()"><button class="soft" type="button" onclick="changeTopSheets(1)">+</button></div>
+    </div>
+
+    <h3>✅ Cantidad</h3>
+    <div class="option-row quantity-row">
+      <div class="choice compact-choice ${topper.mode==='6'?'active':''}" onclick="setTop('mode','6')"><b>Hasta 6u</b></div>
+      <div class="choice compact-choice ${topper.mode==='10'?'active':''}" onclick="setTop('mode','10')"><b>Hasta 10u</b></div>
+      <div class="choice compact-choice ${topper.mode==='exact'?'active':''}" onclick="setTop('mode','exact')"><b>Cantidad</b></div>
+    </div>
+    ${topper.mode==='exact'?`<div class="exact-quantity"><label>Cantidad exacta</label><input type="number" min="1" value="${topper.qty}" oninput="topper.qty=+this.value||1;updateQuote()"></div>`:''}
+
+    <h3>⭐ Estilo Topper</h3>
+    <div class="option-row style-row">
+      <div class="choice compact-choice ${topper.style==='simple'?'active':''}" onclick="setTop('style','simple')"><b>Simple</b></div>
+      <div class="choice compact-choice ${topper.style==='3d'?'active':''}" onclick="setTop('style','3d')"><b>Topper 3D</b></div>
+    </div>
+
+    ${topper.type==='B'?`<div class="card-inner-extra">
+      <h3 style="margin-top:14px">Extras y decoraciones</h3>
+      <div class="option-row extras-row">
+        <div class="choice compact-choice ${topper.premium?'active':''}" onclick="topper.premium=!topper.premium;renderBuilder()"><b>✨ Premium</b></div>
+        <div class="choice compact-choice ${topper.layer?'active':''}" onclick="topper.layer=!topper.layer;renderBuilder()"><b>➕ Capa extra</b></div>
+        <div class="choice compact-choice ${topper.acetate?'active':''}" onclick="topper.acetate=!topper.acetate;renderBuilder()"><b>🔹 Acetato</b></div>
+      </div>
+    </div>`:''}
+  </div>`;
+ }else if(selected==='metal'){
+  const rate=metal.type==='names'?db.prices.metalNames:metal.type==='phrases'?db.prices.metalPhrases:db.prices.metalFigures;
+  $('builder').innerHTML=`<div class="card"><h3 style="margin-top:0">✨ Metalizado</h3>
+  <div class="cols"><div class="choice ${metal.type==='names'?'active':''}" onclick="metal.type='names';renderBuilder()">Nombres</div><div class="choice ${metal.type==='phrases'?'active':''}" onclick="metal.type='phrases';renderBuilder()">Frases</div><div class="choice ${metal.type==='figures'?'active':''}" onclick="metal.type='figures';renderBuilder()">Figuras</div></div>
+  <h3>📏 Medida</h3><div class="cols">${['10','12','15'].map(x=>`<div class="choice ${metal.size===x?'active':''}" onclick="metal.size='${x}';renderBuilder()"><b>${x}cm</b></div>`).join('')}<div class="choice ${metal.size==='custom'?'active':''}" onclick="metal.size='custom';renderBuilder()"><b>Otra</b></div></div>${metal.size==='custom'?`<label>Centímetros</label><input type="number" min="1" value="${metal.custom}" oninput="metal.custom=+this.value||1;updateQuote()">`:''}</div>`;
+ }else if(selected==='free'){
+  $('builder').innerHTML=`<div class="card"><h3 style="margin-top:0">✏️ Artículo nuevo</h3><small>Para pedidos personalizados. Si ya escribiste este nombre antes, te va a aparecer como sugerencia.</small>
+  <div class="form" style="margin-top:10px">
+  <div><label>Nombre del artículo</label><input id="freeName" list="freeArticleList" value="${esc(freeArt.name)}" placeholder="Ej: Vela personalizada"><datalist id="freeArticleList">${(db.freeArticleCatalog||[]).map(c=>`<option value="${esc(c.name)}">`).join('')}</datalist></div>
+  <div><label>Precio</label><input id="freePrice" type="number" min="0" value="${freeArt.price||0}" placeholder="Precio fijo del artículo completo"></div>
+  <div><label>Precio por hoja</label><input id="freePricePerSheet" type="number" min="0" value="${freeArt.pricePerSheet||0}" placeholder="Se multiplica × hojas usadas"></div>
+  <div><label>Hojas usadas</label><input id="freeSheets" type="number" min="0" step="0.5" value="${freeArt.sheets}"></div>
+  <div><label>Tipo de papel</label><select id="freePaper"><option value="">Ninguno</option>${db.papers.map(p=>`<option value="${p.id}" ${freeArt.paperId===p.id?'selected':''}>${esc(p.name)} · Stock: ${p.stock||0}</option>`).join('')}</select></div>
+  </div>
+  <small style="display:block;margin-top:8px">Si cargás "Precio por hoja", ese manda y se multiplica por las hojas usadas. Si lo dejás en blanco, se cobra el "Precio" fijo tal cual, sin importar cuántas hojas use.</small>
+  </div>`;
+  $('freeName').addEventListener('input', updateFree);
+  $('freeName').addEventListener('change', onFreeNameChange);
+  ['freePrice','freePricePerSheet','freeSheets','freePaper'].forEach(id=>$(id).addEventListener('input',updateFree));
+ }else{
+  const a=db.articles[+selected.split(':')[1]]; $('builder').innerHTML=`<div class="card"><div class="form"><div><label>Cantidad</label><input id="artQty" type="number" min="1" value="${currentQty()}"></div></div><small>${esc(a.desc)}</small></div>`;
+  $('artQty').addEventListener('input',updateQuote)
+ }
+ updateQuote()
+}
+function onFreeNameChange(){
+ const typed=($('freeName').value||'').trim();
+ const match=(db.freeArticleCatalog||[]).find(c=>c.name.toLowerCase()===typed.toLowerCase());
+ if(match){
+   freeArt={name:match.name, price:match.price||0, pricePerSheet:match.pricePerSheet||0, sheets:match.sheets||1, paperId:(match.paperId!=null && db.papers.some(p=>p.id===match.paperId))?match.paperId:(db.papers[0]?db.papers[0].id:null)};
+   renderBuilder();
+ } else {
+   updateFree();
+ }
+}
+function freeRate(){ return freeArt.pricePerSheet||0; }
+function freeTotal(){ const r=freeRate(); return r>0 ? round2(r*(freeArt.sheets||0)) : (freeArt.price||0); }
+function updateFree(){
+ freeArt.name=$('freeName').value;
+ freeArt.price=+$('freePrice').value||0;
+ freeArt.pricePerSheet=+$('freePricePerSheet').value||0;
+ freeArt.sheets=+$('freeSheets').value||0;
+ freeArt.paperId=$('freePaper').value?+$('freePaper').value:null;
+ updateQuote();
+}
+function setTop(k,v){topper[k]=v;renderBuilder()}
+function changeTopSheets(delta){
+  topper.sheets=Math.max(1,(Number(topper.sheets)||1)+delta);
+  renderBuilder();
+}
+function currentQty(){return Number(window.currentArticleQty||1)}
+function currentQuote(){
+ if(selected==='topper')return topperQuote();
+ if(selected==='metal'){
+  const cm=Math.max(1,Number(metal.size==='custom'?metal.custom:metal.size)||1);
+  const r=metal.type==='names'?db.prices.metalNames:metal.type==='phrases'?db.prices.metalPhrases:db.prices.metalFigures;
+  // Costo real por medida: una hoja A3 rinde 12 cuadrados de 10x10 cm.
+  // Por eso 10 cm = 1 cuadrado, 12 cm = 1,2 cuadrados y 15 cm = 1,5 cuadrados.
+  const metalSquares=cm/10;
+  const metalSheetUnit=(db.prices.metalSheetCost||0)/12;
+  const acetateUnit=(db.prices.metalAcetateCost||0)/24;
+  const cost=(metalSheetUnit+acetateUnit)*metalSquares;
+  return {total:cm*r,cost,materialSheets:metalSquares,lines:[['Metalizado',`${cm} cm`,cm*r]],quantity:1}
+ }
+ if(selected==='free'){
+  const paper=db.papers.find(p=>p.id===freeArt.paperId);
+  const cb=costBreakdown(paper,freeArt.sheets);
+  const rateUsada = freeRate();
+  const total = freeTotal();
+  const detTxt = rateUsada>0 ? `${freeArt.sheets} hojas × ${money(rateUsada)}${paper?' · '+esc(paper.name):''}` : (paper?`${freeArt.sheets} hojas · ${esc(paper.name)} (precio fijo)`:`Precio fijo`);
+  return {total, cost:cb.total, costParts:cb.parts, materialSheets:freeArt.sheets, lines:[[freeArt.name||'Artículo nuevo', detTxt, total]], quantity:1};
+ }
+ if(selected&&selected.startsWith('article:')){
+  const a=db.articles[+selected.split(':')[1]];
+  const q=Number($('artQty')?.value||window.currentArticleQty||1);
+  window.currentArticleQty=q;
+  const paper=db.papers.find(p=>p.id===a.paperId);
+  // Para artículos registrados, el costo real se calcula con el papel asociado + servicios.
+  // Si no hay papel asociado, se usa el costo material manual configurado en Ajustes.
+  const cb=paper ? costBreakdown(paper,q) : {parts:[['Material',Number(a.materialCost||0)*q]],total:Number(a.materialCost||0)*q};
+  return {total:a.price*q,cost:cb.total,costParts:cb.parts,materialSheets:q,lines:[[a.name,`${q} unidad(es)${paper?' · '+paper.name:''}`,a.price*q]],quantity:q}
+ }
+ return {total:0,lines:[]}
+}
+function updateQuote(){
+ const q=currentQuote();
+ const quoteName = selected==='topper' ? 'Set Topper' : selected==='metal' ? 'Topper Metalizado' : selected==='free' ? (freeArt.name||'Artículo nuevo') : (selected&&selected.startsWith('article:') ? (db.articles[+selected.split(':')[1]]?.name||'Artículo') : 'Artículo');
+ if(q.lines.length){
+   const sheets = Number(q.materialSheets||0);
+   const adminDetails = `
+     <div class="admin-quote-detail">
+       <div><span>Costo real</span><b>${money(q.cost||0)}</b></div>
+       ${sheets>0?`<div><span>Hojas utilizadas</span><b>${Number.isInteger(sheets)?sheets:sheets.toFixed(2)}</b></div>`:''}
+     </div>`;
+   $('quote').innerHTML=`<div class="row line"><span>${esc(quoteName)}</span><b>${money(q.total)}</b></div>${adminDetails}`;
+ }else{
+   $('quote').innerHTML='<div class="empty">Seleccioná un artículo.</div>';
+ }
+ $('total').textContent=money(q.total);
+}
+
+/* --- CARRITO --- */
+function addToCart(){
+  if(!selected){alert('Configurá un artículo primero.');return;}
+  if(selected==='free' && !freeArt.name.trim()){alert('Poné un nombre para el artículo libre.');return;}
+  const q = currentQuote();
+  let itemName = "Extra", paperId = null;
+  if(selected === 'topper'){ itemName = "Set Topper"; paperId = topper.paperId; }
+  if(selected === 'metal') itemName = "Topper Metal";
+  if(selected==='free'){ itemName = freeArt.name.trim(); paperId = freeArt.paperId; }
+  if(selected.startsWith('article:')){ const a = db.articles[+selected.split(':')[1]]; itemName = a.name; paperId = (typeof a.paperId!=='undefined')?a.paperId:null; }
+  const detail = ($('itemDetalle').value||'').trim();
+
+  currentCart.push({name: itemName, type: selected, paperId, detail, topper: selected==='topper'?clone(topper):null, metal: selected==='metal'?clone(metal):null, quote: q});
+  if(selected==='free'){
+    const nm=freeArt.name.trim();
+    const entry={name:nm, price:freeArt.price, pricePerSheet:freeArt.pricePerSheet||0, sheets:freeArt.sheets, paperId:freeArt.paperId};
+    db.freeArticleCatalog=db.freeArticleCatalog||[];
+    const idx=db.freeArticleCatalog.findIndex(c=>c.name.toLowerCase()===nm.toLowerCase());
+    if(idx>=0) db.freeArticleCatalog[idx]=entry; else db.freeArticleCatalog.push(entry);
+    save();
+    freeArt={name:'',price:0,pricePerSheet:0,sheets:1,paperId:(__glossy?.id ?? (db.papers[0]?db.papers[0].id:null))};
+  }
+  $('itemDetalle').value='';
+  renderCarrito(); selected=null; renderChoices(); renderBuilder();
+}
+
+function removeFromCart(index){currentCart.splice(index, 1); renderCarrito();}
+
+function renderCarrito(){
+  let gt = 0, gc = 0;
+  $('carritoLista').innerHTML = currentCart.map((item, i) => {
+    gt += item.quote.total; gc += item.quote.cost;
+    return `<div class="row line">
+      <div style="font-size:13px; width:100%"><b style="color:var(--pink-700)">${esc(item.name)}</b>
+      ${item.detail?`<br><span style="color:var(--muted)">📝 ${esc(item.detail)}</span>`:''}
+      </div><div style="text-align:right;white-space:nowrap"><b class="big">${money(item.quote.total)}</b> <button class="danger" style="padding:3px 9px;font-size:12px" onclick="removeFromCart(${i})">✕</button></div>
+    </div>`;
+  }).join('') || '<div class="empty">Carrito vacío.</div>';
+  $('granTotal').textContent = money(gt);
+  let costoBox = $('pedidoCostoResumen');
+  if(!costoBox){
+    costoBox = document.createElement('div');
+    costoBox.id = 'pedidoCostoResumen';
+    costoBox.style.cssText = 'margin-top:6px;font-size:12px;color:var(--muted)';
+    $('granTotal').closest('.row').after(costoBox);
+  }
+  costoBox.innerHTML = currentCart.length ? `<div class="row" style="margin:0"><span>💸 Costo real (todas las hojas)</span><b>${money(gc)}</b></div>` : '';
+  const __ed=editId?db.orders.find(o=>Number(o.id)===Number(editId)):null;
+  if($('pSena')) $('pSena').readOnly=!!__ed;
+  const sena = Math.min(__ed?paidTotal(__ed):Math.max(0, Number($('pSena')?.value) || 0), gt);
+  const resta = Math.max(0, gt - sena);
+  let saldoBox = $('pedidoSaldoResumen');
+  if(!saldoBox){
+    saldoBox = document.createElement('div');
+    saldoBox.id = 'pedidoSaldoResumen';
+    saldoBox.style.cssText = 'margin-top:10px;padding-top:10px;border-top:1px solid rgba(211,42,139,.18);font-size:13px';
+    $('granTotal').closest('.card').appendChild(saldoBox);
+  }
+  saldoBox.innerHTML = `<div class="row" style="margin:4px 0"><span>Seña</span><b>${money(sena)}</b></div><div class="row" style="margin:4px 0"><span>Resta</span><b style="color:var(--pink-700)">${money(resta)}</b></div>`;
+}
+
+function loadOrder(id){
+  const o=db.orders.find(x=>Number(x.id)===Number(id));
+  if(!o)return;
+  editId=Number(id);
+  $('pNombre').value=o.client||'';
+  $('pTelefono').value=o.phone||'';
+  $('pEntrega').value=o.delivery||'';
+  $('pEstado').value=o.status||'Pendiente';
+  $('pSena').value=Number(o.sena||0)||'';
+  $('pTematica').value=o.tematica||'';
+  $('pMedida').value=o.measure||'';
+  $('pColor').value=o.color||'';
+  $('pDetalles').value=o.details||'';
+  currentCart=o.items?clone(o.items):[];
+  $('pedidoTitulo').textContent='✏️ Editar pedido #'+String(o.orderNumber||0).padStart(2,'0');
+  if($('btnEliminarPedido')) $('btnEliminarPedido').style.display='inline-block';
+  if($('btnShare')) $('btnShare').style.display='inline-block';
+  renderCarrito();
+  renderChoices();
+  renderBuilder();
+  updateQuote();
+  go('nuevoPedido');
+}
+
+/* --- SYNC A GOOGLE SHEETS (una sola dirección: app -> Sheets, vía Apps Script) --- */
+let __syncTimer=null;
+function guardarDriveUrl(){
+  db.driveSyncUrl = ($('driveSyncUrl').value||'').trim();
+  localStorage.setItem(KEY,JSON.stringify(db));
+  alert(db.driveSyncUrl ? 'URL guardada. De ahora en más, cada cambio que guardes se sube solo a tu hoja de Sheets.' : 'URL borrada. Ya no se va a intentar subir nada.');
+  renderSyncStatus();
+  if(db.driveSyncUrl) syncAllToDrive(false);
+}
+function scheduleSync(){
+  if(!db.driveSyncUrl) return;
+  clearTimeout(__syncTimer);
+  __syncTimer=setTimeout(()=>syncAllToDrive(false), 1200); // pequeño debounce para no spamear si hay varios cambios seguidos
+}
+async function syncAllToDrive(manual){
+  if(!db.driveSyncUrl){ if(manual) alert('Primero guardá la URL del Web App de Apps Script en Ajustes.'); return; }
+  const payload={
+    papers:db.papers, prices:db.prices, costs:db.costs, articles:db.articles,
+    orders:db.orders, inkPurchases:db.inkPurchases, freeArticleCatalog:db.freeArticleCatalog,
+    lastOrderNumber:db.lastOrderNumber, syncedAt:new Date().toISOString()
+  };
+  try{
+    // mode:'no-cors' porque los Web Apps de Apps Script no devuelven cabeceras CORS;
+    // esto significa que no podemos leer la respuesta ni confirmar 100% el éxito, pero el envío llega igual.
+    // 1) Intento con CORS (text/plain evita el preflight) para poder LEER la respuesta del script.
+    try{
+      const r = await fetch(db.driveSyncUrl, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(payload) });
+      const j = await r.json().catch(()=>null);
+      db._syncState = (r.ok && j && j.ok!==false) ? 'ok' : 'error';
+    }catch(e1){
+      // 2) Respaldo: no-cors. Se envía, pero NO se puede confirmar que Google lo guardó.
+      await fetch(db.driveSyncUrl, { method:'POST', mode:'no-cors', body: JSON.stringify(payload) });
+      db._syncState = 'unconfirmed';
+    }
+    db._syncPending = (db._syncState==='error');
+  }catch(err){
+    db._syncState = 'error';
+    db._syncPending = true; // sin conexión u otro error de red: queda para reintentar
+  }
+  localStorage.setItem(KEY,JSON.stringify(db));
+  renderSyncStatus();
+  if(manual) alert(db._syncState==='ok' ? '✅ Google Sheets confirmó que guardó los datos.' : db._syncState==='unconfirmed' ? '📤 Enviado, pero Google no permite confirmar la recepción. Revisá tu hoja.' : '❌ Error al sincronizar (revisá tu conexión o la URL).');
+}
+function renderSyncStatus(){
+  if(!$('syncStatus')) return;
+  if($('driveSyncUrl') && document.activeElement!==$('driveSyncUrl')) $('driveSyncUrl').value = db.driveSyncUrl||'';
+  if(!db.driveSyncUrl){ $('syncStatus').textContent='Todavía no configuraste la URL del Web App.'; return; }
+  $('syncStatus').textContent = db._syncState==='error' ? '❌ Error en el último envío. Probá "Sincronizar ahora".' : db._syncState==='unconfirmed' ? '📤 Último envío realizado, sin confirmación de Google.' : db._syncState==='ok' ? '✅ Confirmado por Google Sheets.' : 'Sin envíos todavía.';
+}
+
+let __guardando=false;
+async function guardarPedido(){
+  if(__guardando) return;
+  if(!$('pNombre').value.trim()||!$('pEntrega').value){alert('Completá nombre y entrega.');return;}
+  if(currentCart.length===0){alert('Agregá algo al carrito.');return;}
+  const gt=currentCart.reduce((s,i)=>s+(Number(i.quote?.total)||0),0);
+  const gc=currentCart.reduce((s,i)=>s+(Number(i.quote?.cost)||0),0);
+  const data={
+    client:$('pNombre').value.trim(),phone:$('pTelefono').value.trim(),delivery:$('pEntrega').value,
+    status:$('pEstado').value,paid:(db.orders.find(o=>Number(o.id)===Number(editId))?.paid||false),
+    sena:Math.max(0,Number($('pSena').value)||0),
+    tematica:$('pTematica').value.trim(),measure:$('pMedida').value.trim(),
+    color:$('pColor').value.trim(),details:$('pDetalles').value.trim(),sena:Math.max(0,Number($('pSena').value)||0),items:clone(currentCart),
+    total:gt,cost:gc,article:`Varios (${currentCart.length})`
+  };
+  const prev=editId?db.orders.find(o=>Number(o.id)===Number(editId)):null;
+  const falta=stockFaltante(data.items,prev?prev.items:[]);
+  if(falta.length&&!await askOk('⚠️ Stock insuficiente:\n'+falta.join('\n')+'\n\n¿Guardar igual?'))return;
+  const pagado=prev?paidTotal(prev):data.sena;
+  if(data.status==='Entregado'&&gt-pagado>0&&!await askOk('Este pedido tiene un saldo de '+money(gt-pagado)+'. ¿Marcarlo como Entregado igual?'))return;
+  if(editId){delete data.sena;delete data.paid;}else{data.payments=data.sena>0?[{date:new Date().toISOString().slice(0,10),amount:data.sena,method:'Seña'}]:[];}
+  let savedOrder;
+  if(editId){
+    const existing=db.orders.find(o=>Number(o.id)===Number(editId));
+    if(existing){
+      adjustStock(existing.items, +1); // devuelve el stock que había consumido la versión anterior
+      Object.assign(existing,data);
+      adjustStock(existing.items, -1); // descuenta el stock según el carrito actualizado
+      syncPay(existing);
+      if(!existing.snap||existing.snap.hojas!==(existing.items||[]).reduce((a,i)=>a+(Number(i.quote&&i.quote.materialSheets)||0),0)) snapConsumo(existing);
+      savedOrder=existing;
+    }
+  }else{
+    db.lastOrderNumber++;
+    const nuevo={...data,id:Date.now(),orderNumber:db.lastOrderNumber,registered:new Date().toLocaleDateString('es-AR')};
+    syncPay(nuevo);snapConsumo(nuevo);
+    db.orders.push(nuevo);
+    adjustStock(nuevo.items, -1);
+    savedOrder=nuevo;
+  }
+  __guardando=true; setTimeout(()=>{__guardando=false},1500);
+  save();alert('Pedido guardado.');
+  nuevoPedido();go('inicio');
+}
+
+async function duplicarPedido(id){
+  const o=db.orders.find(x=>Number(x.id)===Number(id)); if(!o) return;
+  if(!await askOk('¿Duplicar el pedido #'+String(o.orderNumber||0).padStart(2,'0')+'? Se crea uno nuevo y se descuenta el stock.')) return;
+  const falta=stockFaltante(o.items,[]);
+  if(falta.length&&!await askOk('⚠️ Stock insuficiente:\n'+falta.join('\n')+'\n\n¿Duplicar igual?'))return;
+  db.lastOrderNumber++;
+  const n={...clone(o),id:Date.now(),orderNumber:db.lastOrderNumber,status:'Pendiente',paid:false,sena:0,payments:[],delivery:'',registered:new Date().toLocaleDateString('es-AR')};
+  db.orders.push(n); adjustStock(n.items,-1); save();
+  loadOrder(n.id);
+}
+async function eliminarPedido(){
+  if(await askOk('¿Seguro que querés eliminar este pedido completo?')){
+    const o=db.orders.find(o=>Number(o.id)===Number(editId));
+    if(o) adjustStock(o.items, +1); // restaura el stock que tenía reservado
+    db.orders=db.orders.filter(o=>Number(o.id)!==Number(editId));
+    save();alert('Pedido eliminado correctamente.');nuevoPedido();go('inicio');
+  }
+}
+
+function togglePagado(id){
+  const o=db.orders.find(x=>Number(x.id)===Number(id));
+  if(!o)return;
+  o.paid=!Boolean(o.paid);
+  save();
+  renderAll();
+}
+
+async function toggleEntregado(id){
+  const o=db.orders.find(x=>Number(x.id)===Number(id));
+  if(!o)return;
+  if(o.status!=='Entregado'&&saldoDe(o)>0&&!await askOk('Tiene un saldo pendiente de '+money(saldoDe(o))+'. ¿Marcar como Entregado igual?'))return;
+  o.status=(o.status==='Entregado'?'Pendiente':'Entregado');
+  save();
+  renderAll();
+}
+
+function textOrder(o){
+  const itemsText=(o.items||[]).map((item,i)=>{
+    const emoji=item.type==='topper'?'🎂':item.type==='metal'?'✨':'🏷️';
+    const precio=Number(item.quote?.total||0);
+    const detalle=(item.detail||'').trim();
+    return `${emoji} *${String(item.name||'Artículo')}*\n• Precio: *${money(precio)}*${detalle?`\n📝: ${detalle}`:''}`;
+  }).join('\n\n');
+  const total=Number(o.total||0);
+  const sena=Math.min(Math.max(0,Number(o.sena)||0),total);
+  const resta=Math.max(0,total-sena);
+  const senaLine=sena>0?`Seña: *${money(sena)}*\n`:'';
+  return `✨ *NOT - Presupuesto*\n\n*Pedido:* #${String(o.orderNumber||0).padStart(2,'0')}\n*Cliente:* ${o.client||''}\n*Entrega:* ${o.delivery?o.delivery.split('-').reverse().join('/'):'A confirmar'}\n\n${itemsText}\n\n🧾 *TOTAL:* *${money(total)}*\n${senaLine}Resta: *${money(resta)}*\nGracias por elegir NOT 💖`;
+}
+
+function share(o){
+  if(!o)return;
+  const text=textOrder(o);
+  const url='https://wa.me/?text='+encodeURIComponent(text);
+  window.open(url,'_blank');
+}
+
+function compartirActual(){
+  if(editId){
+    const o=db.orders.find(x=>Number(x.id)===Number(editId));
+    if(o){share(o);return;}
+  }
+  if(currentCart.length===0){alert('Agregá un artículo al pedido primero.');return;}
+  const temp={
+    orderNumber:0,client:$('pNombre').value.trim(),phone:$('pTelefono').value.trim(),
+    delivery:$('pEntrega').value,tematica:$('pTematica').value.trim(),measure:$('pMedida').value.trim(),
+    color:$('pColor').value.trim(),details:$('pDetalles').value.trim(),items:clone(currentCart),
+    sena:Math.max(0,Number($('pSena').value)||0),
+    total:currentCart.reduce((s,i)=>s+(Number(i.quote?.total)||0),0)
+  };
+  share(temp);
+}
+
+function hayBorrador(){return !!(editId||currentCart.length||($('pNombre')&&$('pNombre').value.trim()));}
+function abrirPedido(){ if(!hayBorrador()) nuevoPedido(); go('nuevoPedido'); }
+async function descartarBorrador(){ if(await askOk('¿Descartar el pedido en curso? Se pierde lo que cargaste.')){ nuevoPedido(); renderOrders(); } }
+function renderOrders(){
+  const bb=$('borradorBanner');
+  if(bb) bb.innerHTML=hayBorrador()?`<div style="background:var(--yellow-50);border:2px dashed var(--yellow);border-radius:18px;padding:10px 12px;margin:8px 0"><b>📝 Pedido en curso</b>${$('pNombre').value.trim()?' · '+esc($('pNombre').value.trim()):''} · ${currentCart.length} artículo${currentCart.length===1?'':'s'}<div class="actions" style="margin-top:8px"><button type="button" onclick="go('nuevoPedido')">Continuar</button><button type="button" class="soft" onclick="descartarBorrador()">Descartar</button></div></div>`:'';
+  const q=(($('buscaPedido')||{}).value||'').trim().toLowerCase();
+  const arr=db.orders.filter(o=>!q||[o.client,o.phone,String(o.orderNumber)].join(' ').toLowerCase().includes(q)).sort((a,b)=>{
+    const ea=a.status==='Entregado', eb=b.status==='Entregado';
+    if(ea!==eb) return ea?1:-1;
+    return String(a.delivery||'9999').localeCompare(String(b.delivery||'9999'))||(a.orderNumber||0)-(b.orderNumber||0);
+  });
+  $('pedidosLista').innerHTML=arr.length?arr.map(o=>{
+    const m0=n=>money(n).replace(/,00$/,'');
+    const ent=o.status==='Entregado';
+    return `
+    <div class="order${ent?' order-entregado':''}">
+      <div class="row" style="gap:8px;align-items:baseline">
+        <b style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">#${String(o.orderNumber||0).padStart(2,'0')} · ${esc(o.client||'')}</b>
+        <b style="white-space:nowrap">${m0(o.total||0)}</b>
+      </div>
+      <div class="row" style="gap:8px;margin-top:1px;flex-wrap:wrap">
+        <small style="white-space:nowrap">📅 ${o.delivery?o.delivery.split('-').reverse().join('/'):'A confirmar'}</small>
+        <small>Cobrado ${m0(paidTotal(o))} · Saldo ${m0(saldoDe(o))}</small>
+      </div>
+      <div class="actions" style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:nowrap">
+        <button type="button" onclick="loadOrder(${o.id})">✏️ Editar</button>
+        <button type="button" class="${o.paid?'paid-btn':'pending-btn'}" onclick="registrarPago(${o.id})">${o.paid?'✓ Pagado':'💵 Cobrar'}</button>
+        <button type="button" class="${ent?'paid-btn':'pending-btn'}" onclick="toggleEntregado(${o.id})">${ent?'✓ Entregado':'Pendiente'}</button>
+        <button type="button" class="sky" aria-label="Compartir" style="width:30px;height:30px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;margin-left:auto" onclick="share(db.orders.find(x=>Number(x.id)===Number(${o.id})))"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4"/></svg></button>
+      </div>
+      ${(o.payments||[]).length?`<details style="margin-top:4px;font-size:12px"><summary style="cursor:pointer;color:var(--muted)">Pagos (${o.payments.length})</summary>${o.payments.map((p,i)=>`<div class="row" style="margin:2px 0"><span>${esc((p.date||'').split('-').reverse().join('/'))} · ${esc(p.method||'')}</span><span><b>${money(p.amount)}</b> <a href="#" onclick="borrarPago(${o.id},${i});return false" style="color:#b4233c;text-decoration:none">✕</a></span></div>`).join('')}</details>`:''}
+    </div>`;}).join(''):'<div class="empty">No hay pedidos.</div>';
+}
+
+function renderInicio(){
+ const activeOrders = db.orders.filter(o=>!['Entregado','Cancelado'].includes(o.status));
+ const ventas = activeOrders.reduce((a,o)=>a+(Number(o.total)||0),0);
+ const cost = activeOrders.reduce((a,o)=>a+(Number(o.cost)||0),0);
+ 
+ $('sVentas').textContent=money(ventas);$('sCostos').textContent=money(cost);$('sGanancias').textContent=money(ventas-cost);$('sActivos').textContent=activeOrders.length;
+ 
+ $('inicioStock').innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">${db.papers.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;background:${(p.stock||0)<STOCK_BAJO?'#ffe0ea':'#dff6fa'};border-radius:14px;padding:6px 10px;font-size:12px"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}</span><b style="white-space:nowrap;font-size:13px">${p.stock||0} h</b></div>`).join('')}</div>`;
+ 
+ const arr=[...db.orders].sort((a,b)=>{const ea=a.status==='Entregado',eb=b.status==='Entregado';if(ea!==eb)return ea?1:-1;return String(a.delivery||'9999').localeCompare(String(b.delivery||'9999'))||(a.orderNumber||0)-(b.orderNumber||0);});
+ $('inicioPedidos').innerHTML=arr.length?arr.map(o=>`<div class="order${o.status==='Entregado'?' order-entregado':''}" onclick="loadOrder(${o.id})"><div class="row"><div><b>#${String(o.orderNumber||0).padStart(2,'0')} · ${esc(o.client)}</b><br><small>📅 ${o.delivery.split('-').reverse().join('/')} · 📌 ${o.status}</small></div><b>${money(o.total)}</b></div></div>`).join(''):'<div class="empty">Todavía no hay pedidos.</div>';
+ renderPrioridades();
+}
+const STOCK_BAJO=20; // hojas; por debajo de esto se marca como stock bajo
+function renderPrioridades(){
+ const box=$('inicioPrioridades'); if(!box) return;
+ const d=new Date(); const iso=x=>x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
+ const hoy=iso(d); const lim=new Date(d); lim.setDate(lim.getDate()+7); const en7=iso(lim);
+ const vivos=db.orders.filter(o=>!['Entregado','Cancelado'].includes(o.status));
+ const atrasados=vivos.filter(o=>o.delivery&&o.delivery<hoy);
+ const proximos=vivos.filter(o=>o.delivery&&o.delivery>=hoy&&o.delivery<=en7);
+ const senas=vivos.filter(o=>paidTotal(o)===0&&(Number(o.total)||0)>0);
+ const porCobrar=db.orders.filter(o=>o.status!=='Cancelado').reduce((a,o)=>a+saldoDe(o),0);
+ const bajo=db.papers.filter(p=>(p.stock||0)<STOCK_BAJO);
+ const fila=o=>`<div class="row" style="margin:3px 0;cursor:pointer" onclick="loadOrder(${o.id})"><span>#${String(o.orderNumber||0).padStart(2,'0')} · ${esc(o.client||'')}</span><small>${o.delivery.split('-').reverse().join('/')}</small></div>`;
+ const porFecha=(a,b)=>String(a.delivery).localeCompare(String(b.delivery))||(a.orderNumber||0)-(b.orderNumber||0);
+ const bloque=(t,arr,cnt)=>arr.length?`<div style="margin-top:10px"><b>${t}${cnt===false?'':' ('+arr.length+')'}</b>${[...arr].sort(porFecha).map(fila).join('')}</div>`:'';
+ box.innerHTML=`<h2 style="margin:0 0 6px">📌 Pedidos a entregar</h2>
+  <div class="row line"><span>💵 Por cobrar</span><b>${money(porCobrar)}</b></div>
+  ${bajo.length?`<div class="row line"><span>📦 Stock bajo</span><b style="color:#b4233c">${bajo.map(p=>esc(p.name)+': '+(p.stock||0)).join(' · ')}</b></div>`:''}
+  ${bloque('⚠️ Atrasados',atrasados)}${bloque('🗓️ Próximo:',proximos,false)}${bloque('🪙 Sin seña',senas)}
+  ${!atrasados.length&&!proximos.length&&!senas.length&&!bajo.length&&!porCobrar?'<div class="empty">Todo al día 🎉</div>':''}`;
+}
+
+function exportCSV(){
+ const hoy = new Date().toLocaleDateString('es-AR');
+ const rows=[];
+
+ rows.push(['COSTOS DE REFERENCIA · al '+hoy]);
+ rows.push(['Papel','Costo por hoja','Stock actual']);
+ db.papers.forEach(p=>rows.push([p.name, round2(unitPaper(p)), p.stock||0]));
+ rows.push([]);
+ rows.push(['Tinta $/litro', db.costs.inkPrice||0]);
+ rows.push(['Consumo tinta ml/hoja', db.costs.inkMl||0]);
+ rows.push(['Electricidad $/kWh', db.costs.electricity||0]);
+ rows.push(['Consumo impresora kW', db.costs.printerKw||0]);
+ rows.push(['Costo impresora', db.costs.printerCost||0]);
+ rows.push(['Vida útil en hojas', db.costs.printerLife||0]);
+ rows.push(['Otros $/hoja', db.costs.other||0]);
+ rows.push(['Tiempo prom. impresión por hoja (min)', db.costs.avgTimePerSheet||0]);
+ rows.push(['Valor hora de trabajo', db.costs.hour||0]);
+ rows.push(['Margen predeterminado %', db.costs.margin||0]);
+ rows.push(['Costo hoja A3 Metalizado', db.prices.metalSheetCost||0]);
+ rows.push(['Costo acetato 60x80cm', db.prices.metalAcetateCost||0]);
+ rows.push([]);
+
+ rows.push(['ARTÍCULOS VENDIDOS']);
+ rows.push(['Artículo','Cliente','Pedido','Fecha entrega','Fecha registrado','Estado','Cantidad','Precio','Costo real','Ganancia','% Ganancia','Detalle']);
+ db.orders.forEach(o=>{
+   (o.items||[]).forEach(it=>{
+     const price = Number(it.quote && it.quote.total) || 0;
+     const cost = Number(it.quote && it.quote.cost) || 0;
+     const profit = price - cost;
+     const pct = price>0 ? round2(profit/price*100) : 0;
+     rows.push([it.name, o.client, '#'+String(o.orderNumber||0).padStart(2,'0'), o.delivery, o.registered, o.status, (it.quote&&it.quote.quantity)||1, round2(price), round2(cost), round2(profit), pct, it.detail||'']);
+   });
+ });
+ rows.push([]);
+
+ rows.push(['RESUMEN DE PEDIDOS']);
+ rows.push(['ID Pedido','Fecha entrega','Cliente','Estado','Total','Costo','Ganancia']);
+ db.orders.forEach(o=>rows.push(['#'+String(o.orderNumber||0).padStart(2,'0'), o.delivery, o.client, o.status, round2(o.total), round2(o.cost), round2((o.total||0)-(o.cost||0))]));
+
+ const csv=rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\r\n');
+ const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='NOT_datos_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+}
+async function resetPedidos(){if(await askOk('¿Borrar historial de pedidos?')){db.orders=[];save();renderAll();alert('Borrados.');}}
+async function resetApp(){if(await askOk('¿Borrar TODO?')){localStorage.removeItem(KEY);location.reload()}}
+function exportJSON(){
+ const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='NOT_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();
+}
+function importJSONFile(input){
+ const file=input.files[0]; if(!file) return;
+ const reader=new FileReader();
+ reader.onload=async function(e){
+   try{
+     const data=JSON.parse(e.target.result);
+     if(!data||typeof data!=='object'||!('papers' in data)) throw new Error('Formato inválido');
+     if(!await askOk('Esto va a REEMPLAZAR todos los datos actuales (pedidos, precios, stock) con los del archivo. ¿Continuar?')) return;
+     db=data; save(); renderAll();
+     alert('Datos importados correctamente.');
+   }catch(err){
+     alert('No se pudo leer el archivo. Asegurate de que sea un backup válido de NOT.');
+   }
+ };
+ reader.readAsText(file);
+ input.value='';
+}
+
+/* --- BALANCE --- */
+function getOrdersInRange(from, to){
+  return db.orders.filter(o=>{
+    const d = o.registeredISO || parseRegistered(o.registered);
+    return d && d>=from && d<=to;
+  });
+}
+function computeBalance(from, to){
+  const orders = getOrdersInRange(from, to);
+  const ventas = orders.reduce((a,o)=>a+(Number(o.total)||0),0);
+  const costos = orders.reduce((a,o)=>a+(Number(o.cost)||0),0);
+  const ganancia = ventas - costos;
+  let hojas = 0;
+  orders.forEach(o=>(o.items||[]).forEach(it=>{ hojas += Number(it.quote && it.quote.materialSheets) || 0; }));
+  // Consumo de tinta y luz: se toma de la foto guardada en cada pedido (no cambia si después cambian los precios)
+  let inkMl=0,inkCost=0,kwh=0,luzCost=0;
+  orders.forEach(o=>{ if(!o.snap) snapConsumo(o); inkMl+=o.snap.inkMl; inkCost+=o.snap.inkCost; kwh+=o.snap.kwh; luzCost+=o.snap.luzCost; });
+  let cobrado=0; const porMedio={};
+  db.orders.forEach(o=>(o.payments||[]).forEach(p=>{ if(p.date>=from&&p.date<=to){ const a=Number(p.amount)||0; cobrado+=a; const k=(['Seña','Saldo',''].includes(p.method||'')?'Sin especificar':p.method); porMedio[k]=(porMedio[k]||0)+a; } }));
+  const porCobrar=orders.reduce((a,o)=>a+saldoDe(o),0);
+  let gastado = 0;
+  db.papers.forEach(p=>(p.purchases||[]).forEach(c=>{ if(c.date>=from && c.date<=to) gastado += Number(c.price)||0; }));
+  (db.inkPurchases||[]).forEach(c=>{ if(c.date>=from && c.date<=to) gastado += Number(c.price)||0; });
+  return {ventas, costos, ganancia, hojas, inkMl, inkCost, kwh, luzCost, gastado, cobrado, porMedio, porCobrar, orders};
+}
+function dailySeries(from, to, orders){
+  const days=[]; let d=new Date(from+'T00:00:00'); const end=new Date(to+'T00:00:00');
+  if(isNaN(d)||isNaN(end)||d>end) return [];
+  while(d<=end){ days.push({date:d.toISOString().slice(0,10), ventas:0, costos:0, gasto:0}); d.setDate(d.getDate()+1); }
+  const map={}; days.forEach(x=>map[x.date]=x);
+  orders.forEach(o=>{ const key=o.registeredISO||parseRegistered(o.registered); if(map[key]){ map[key].ventas+=Number(o.total)||0; map[key].costos+=Number(o.cost)||0; } });
+  db.papers.forEach(p=>(p.purchases||[]).forEach(c=>{ if(map[c.date]) map[c.date].gasto += Number(c.price)||0; }));
+  (db.inkPurchases||[]).forEach(c=>{ if(map[c.date]) map[c.date].gasto += Number(c.price)||0; });
+  return days;
+}
+function bucketize(days, maxBuckets){
+  maxBuckets = maxBuckets||16;
+  if(!days.length) return [];
+  if(days.length<=maxBuckets) return days.map(x=>({label:x.date.slice(8,10)+'/'+x.date.slice(5,7), ventas:x.ventas, costos:x.costos, gasto:x.gasto}));
+  const size = Math.ceil(days.length/maxBuckets), out=[];
+  for(let i=0;i<days.length;i+=size){
+    const chunk = days.slice(i, i+size);
+    out.push({label: chunk[0].date.slice(8,10)+'/'+chunk[0].date.slice(5,7), ventas: chunk.reduce((a,x)=>a+x.ventas,0), costos: chunk.reduce((a,x)=>a+x.costos,0), gasto: chunk.reduce((a,x)=>a+(x.gasto||0),0)});
+  }
+  return out;
+}
+function svgBarChart(buckets){
+  const w = Math.max(340, buckets.length*54), h=190, pad=8, bottom=26;
+  const maxVal = Math.max(1, ...buckets.map(b=>Math.max(b.ventas,b.costos,b.gasto||0)));
+  const bw = (w-pad)/buckets.length;
+  const gw = bw/3;
+  let bars='', labels='';
+  const step = Math.max(1, Math.ceil(buckets.length/8));
+  buckets.forEach((b,i)=>{
+    const x = pad + i*bw;
+    const gH = (b.ventas/maxVal)*(h-pad-bottom);
+    const cH = (b.costos/maxVal)*(h-pad-bottom);
+    const sH = ((b.gasto||0)/maxVal)*(h-pad-bottom);
+    const baseY = h-bottom;
+    bars += `<rect x="${x+1}" y="${baseY-gH}" width="${gw-2}" height="${gH}" fill="var(--pink)" rx="3"></rect>`;
+    bars += `<rect x="${x+gw+1}" y="${baseY-cH}" width="${gw-2}" height="${cH}" fill="var(--sky)" rx="3"></rect>`;
+    bars += `<rect x="${x+gw*2+1}" y="${baseY-sH}" width="${gw-2}" height="${sH}" fill="var(--yellow)" rx="3"></rect>`;
+    if(i%step===0){ labels += `<text x="${x+bw/2}" y="${h-6}" font-size="9" fill="#8b8391" text-anchor="middle">${esc(b.label)}</text>`; }
+  });
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:190px;display:block;min-width:${w}px" preserveAspectRatio="xMinYMid meet">
+    <line x1="${pad}" y1="${h-bottom}" x2="${w}" y2="${h-bottom}" stroke="#ece5ea" stroke-width="1"></line>
+    ${bars}${labels}
+  </svg>`;
+}
+function computeProductCounts(orders){
+  const map = {};
+  orders.forEach(o=>(o.items||[]).forEach(it=>{
+    const key = it.name || 'Otro';
+    const qty = Number(it.quote && it.quote.quantity) || 1;
+    const revenue = Number(it.quote && it.quote.total) || 0;
+    const cost = Number(it.quote && it.quote.cost) || 0;
+    if(!map[key]) map[key] = {name:key, count:0, revenue:0, cost:0};
+    map[key].count += qty; map[key].revenue += revenue; map[key].cost += cost;
+  }));
+  return Object.values(map).sort((a,b)=>b.revenue-a.revenue).map(p=>({...p, profit:p.revenue-p.cost}));
+}
+function renderProductBars(products){
+  if(!products.length) return '<div class="empty">Sin pedidos en este período.</div>';
+  const colors=['var(--pink)','var(--sky)','var(--yellow)','#a78bda','#7fd9a5','#f2a154'];
+  const max = Math.max(...products.map(p=>p.count));
+  return products.map((p,i)=>`<div style="margin:12px 0;padding-bottom:11px;border-bottom:1px solid var(--line)">
+    <div class="row" style="margin-bottom:4px"><span style="font-size:13px;font-weight:600">${esc(p.name)}</span><b style="font-size:13px">${p.count} u.</b></div>
+    <div style="background:#eee9ed;border-radius:8px;height:10px;overflow:hidden;margin-bottom:7px"><div style="width:${Math.max(4,(p.count/max)*100)}%;height:100%;background:${colors[i%colors.length]};border-radius:8px"></div></div>
+    <div class="row" style="font-size:11.5px;color:var(--muted)"><span>Costo real: ${money(p.cost)}</span><span>Ganancia: ${money(p.profit)}</span></div>
+  </div>`).join('');
+}
+function balRange(kind){
+  const now = new Date(); let from, to = new Date();
+  if(kind==='month'){ from = new Date(now.getFullYear(), now.getMonth(), 1); }
+  else if(kind==='lastmonth'){ from = new Date(now.getFullYear(), now.getMonth()-1, 1); to = new Date(now.getFullYear(), now.getMonth(), 0); }
+  else if(kind==='year'){ from = new Date(now.getFullYear(), 0, 1); }
+  else if(kind==='all'){
+    const dates = db.orders.map(o=>o.registeredISO||parseRegistered(o.registered)).filter(Boolean).sort();
+    from = dates.length ? new Date(dates[0]+'T00:00:00') : new Date(now.getFullYear(), now.getMonth(), 1);
+  }
+  $('balDesde').value = from.toISOString().slice(0,10);
+  $('balHasta').value = to.toISOString().slice(0,10);
+  renderBalance();
+}
+function renderBalance(){
+  if(!$('balDesde')) return;
+  if(!$('balDesde').value){ const now=new Date(); $('balDesde').value = new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10); }
+  if(!$('balHasta').value){ $('balHasta').value = new Date().toISOString().slice(0,10); }
+  const from = $('balDesde').value, to = $('balHasta').value;
+  const b = computeBalance(from, to);
+  $('balVentas').textContent = money(b.ventas);
+  $('balCostosStat').textContent = money(b.costos);
+  $('balGanancia').textContent = money(b.ganancia);
+  $('balGastado').textContent = money(b.gastado);
+
+  const buckets = bucketize(dailySeries(from, to, b.orders));
+  $('balChart').innerHTML = buckets.length ? svgBarChart(buckets) : '<div class="empty">Sin datos en este período.</div>';
+
+  const pctCostos = b.ventas>0 ? Math.min(100, (b.costos/b.ventas)*100) : 0;
+  $('balDonut').innerHTML = `<div style="width:130px;height:130px;border-radius:50%;background:conic-gradient(var(--sky) 0% ${pctCostos}%, var(--pink) ${pctCostos}% 100%);display:flex;align-items:center;justify-content:center"><div style="width:80px;height:80px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:12px;text-align:center;padding:4px;color:var(--ink)">${b.ventas>0?Math.round(100-pctCostos)+'%<br>ganancia':'—'}</div></div>`;
+  $('balDonutLegend').innerHTML = `<div style="margin-bottom:6px"><span style="color:var(--sky)">●</span> Costos: ${money(b.costos)}</div><div><span style="color:var(--pink)">●</span> Ganancia: ${money(b.ganancia)}</div>`;
+
+  const products = computeProductCounts(b.orders);
+  $('balProductos').innerHTML = renderProductBars(products);
+
+  $('balDetalle').innerHTML = `
+    <div class="row line"><span>💵 Cobrado en el período</span><b>${money(b.cobrado)}</b></div>
+    ${Object.entries(b.porMedio).map(([k,v])=>`<div class="row line" style="padding-left:16px"><small>↳ ${esc(k)}</small><b>${money(v)}</b></div>`).join('')}
+    <div class="row line"><span>⏳ Por cobrar (pedidos del período)</span><b>${money(b.porCobrar)}</b></div>
+    <div class="row line"><span>🏦 Cobrado − compras (flujo de caja)</span><b>${money(b.cobrado-b.gastado)}</b></div>
+    <div class="row line"><span>💸 Dinero gastado (compras)</span><b>${money(b.gastado)}</b></div>
+    <div class="row line"><span>🧾 Costos de producción</span><b>${money(b.costos)}</b></div>
+    <div class="row line"><span>📈 Ganancia estimada (ventas − costos)</span><b>${money(b.ganancia)}</b></div>
+    <div class="row line"><span>📄 Hojas consumidas</span><b>${b.hojas.toFixed(2)} hojas</b></div>
+    <div class="row line"><span>🖋️ Tinta consumida</span><b>${b.inkMl.toFixed(1)} ml (${money(b.inkCost)})</b></div>
+    <div class="row line"><span>💡 Luz consumida</span><b>${b.kwh.toFixed(2)} kWh (${money(b.luzCost)})</b></div>
+  `;
+}
+
+function renderAll(){
+ $('cPapel').innerHTML=db.papers.map((p,i)=>`<option value="${i}">${esc(p.name)}</option>`).join('');
+ renderInicio();renderOrders();renderChoices();renderBuilder();renderPriceInputs();renderInkPurchases();calc();renderSyncStatus();
+ if($('balDesde')) renderBalance();
+}
+
+['cHojas','cTiempo','cHoras','cMinutos','cMargen'].forEach(id=>$(id).addEventListener('input',calc)); $('cPapel').addEventListener('change',calc);
+if($('pSena')) $('pSena').addEventListener('input', renderCarrito);
+/* --- FORMULARIO DE PEDIDO EN 3 PASOS --- */
+let __paso=1;
+async function limpiarForm(){
+  if((currentCart.length||$('pNombre').value.trim())&&!await askOk('¿Borrar lo que cargaste en este pedido?')) return;
+  nuevoPedido();
+}
+function setStep(n){
+  if(!$('stepBar')) return;
+  __paso=n;
+  document.querySelectorAll('#nuevoPedido [data-step]').forEach(e=>{e.style.display=e.dataset.step.split(',').includes(String(n))?'':'none';});
+  document.querySelectorAll('#stepBar span').forEach((b,i)=>{const c=['#ff66c4','#20bad5','#fdce43'][i],t=i===2?'#5a4300':'#fff';b.style.cssText='flex:1;text-align:center;padding:7px 4px;border-radius:999px;font-family:var(--font-display);font-size:13px;font-weight:800;border:2px solid '+c+';'+(i+1===n?'background:'+c+';color:'+t:(i+1<n?'background:'+c+'33;color:#555':'background:#fff;color:#777'));});
+  $('stepBack').style.display=n>1?'':'none';$('stepNavBar').style.display=n<3?'':'none';
+  $('stepNext').style.display=n<3?'':'none';
+  window.scrollTo(0,0);
+}
+function stepNext(){
+  if(__paso===1&&(!$('pNombre').value.trim()||!$('pEntrega').value)){alert('Completá nombre y fecha de entrega.');return;}
+  if(__paso===2&&currentCart.length===0){alert('Agregá al menos un artículo al carrito (botón de agregar).');return;}
+  setStep(__paso+1);
+}
+function initSteps(){
+  const sec=$('nuevoPedido'); const c1=sec.querySelector('.card');
+  const c2=$('pEstado').closest('.card'), c3=$('carritoLista').closest('.card'), ac=$('btnShare').closest('.actions');
+  const kids=[...c1.children]; const h=kids.findIndex(e=>e.tagName==='H3');
+  kids.forEach((e,i)=>{ if(i>0) e.dataset.step=(i<h?'1':'2'); });
+  c2.dataset.step='3'; c3.dataset.step='3'; ac.dataset.step='3';
+  const bar=document.createElement('div'); bar.id='stepBar'; bar.style.cssText='display:flex;gap:6px;margin-bottom:10px';
+  bar.innerHTML='<span>1 · Cliente</span><span>2 · Productos</span><span>3 · Confirmar</span>';
+  sec.insertBefore(bar,c1);
+  const nav=document.createElement('div'); nav.className='actions stickybar'; nav.id='stepNavBar'; nav.style.cssText='margin:12px 0';
+  nav.innerHTML='<button type="button" class="soft" id="stepBack" onclick="setStep(__paso-1)">← Atrás</button><button type="button" id="stepNext" onclick="stepNext()">Siguiente →</button>';
+  ac.parentElement.insertBefore(nav,ac);
+  ac.classList.add('stickybar');
+  const b2=document.createElement('button'); b2.type='button'; b2.className='soft'; b2.textContent='← Atrás'; b2.onclick=()=>setStep(2); ac.insertBefore(b2,ac.firstChild);
+  const mini=document.createElement('div'); mini.id='cartMini'; mini.dataset.step='2'; nav.parentElement.insertBefore(mini,nav);
+  setStep(1);
+}
+function updMini(){const m=$('cartMini');if(!m)return;const n=currentCart.length,t=currentCart.reduce((a,i)=>a+(Number(i.quote&&i.quote.total)||0),0);m.innerHTML=n?`🛒 <b>${n}</b> artículo${n>1?'s':''} en el pedido · <b>${money(t)}</b>`:'🛒 Todavía no agregaste artículos';}
+const __rc=renderCarrito; renderCarrito=function(){__rc();updMini();};
+const __np=nuevoPedido; nuevoPedido=function(){__np();setStep(1);};
+const __lo=loadOrder; loadOrder=async function(id){ if(hayBorrador()&&Number(editId)!==Number(id)&&!await askOk('Tenés un pedido en curso sin guardar. ¿Abrir este y perder lo que cargaste?')) return; __lo(id);setStep(1);};
+$('btnShare').closest('.actions').classList.add('stickybar'); // Guardar/Compartir siempre a mano
+renderAll();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
