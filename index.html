@@ -265,6 +265,7 @@ nav button{font-size:10px}
 #pedidosLista .order summary{list-style:none}
 #inicioStock{margin:0}
 </style>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 <header>
@@ -462,11 +463,15 @@ nav button{font-size:10px}
 
 <section id="ajustes" class="page">
   <div class="card"><h2>⚙️ Ajustes</h2>
-    <div class="card"><h3 style="margin-top:0">☁️ Sincronización con Google Drive</h3>
-    <small>Cada vez que guardás un pedido, se envía a tu Hoja de Drive. Es de <b>una sola dirección: de la app hacia Drive</b> — nunca al revés, así tus datos locales nunca se pisan.</small>
-    <div class="form" style="margin-top:8px"><div><label>URL del Web App (Apps Script)</label><input id="driveSyncUrl" placeholder="https://script.google.com/macros/s/AKfycb.../exec"></div></div>
-    <div class="actions" style="margin-top:8px"><button class="sky" onclick="guardarDriveUrl()">Guardar URL</button><button class="soft" onclick="syncAllToDrive(true)">🔄 Sincronizar ahora</button></div>
-    <div id="syncStatus" style="margin-top:8px;font-size:12.5px;color:var(--muted)"></div>
+    <div class="card">
+      <h3 style="margin-top:0">☁️ Sincronización con Google</h3>
+      <small>Guardá una copia de todos los datos de NotFome en tu Hoja de Google y recuperalos desde otro celular o computadora. Los datos locales siguen funcionando sin conexión.</small>
+      <div class="actions" style="margin-top:10px">
+        <button class="sky" onclick="conectarGoogle()">🔐 Conectar con Google</button>
+        <button class="soft" onclick="guardarGoogleAhora(true)">☁️ Guardar datos</button>
+        <button class="soft" onclick="recuperarGoogle()">♻️ Recuperar datos</button>
+      </div>
+      <div id="googleSyncStatus" style="margin-top:9px;font-size:12.5px;color:var(--muted)">Google no está conectado.</div>
     </div>
     <div class="card"><h3 style="margin-top:0">📊 Excel</h3><small>Exporta un archivo CSV compatible con Excel con el detalle de artículos vendidos, costos y ganancias.</small><br><button class="sky" onclick="exportCSV()">📥 Exportar datos</button></div>
     <div class="card"><h3 style="margin-top:0">💾 Copia de seguridad completa</h3><small>Exportá o restaurá TODOS los datos (pedidos, precios, stock, artículos) en un archivo. Útil si cambiás de celular y no querés cargar todo de nuevo.</small><br>
@@ -572,7 +577,7 @@ let freeArt={name:'',price:0,pricePerSheet:0,sheets:1,paperId:(__glossy?.id ?? (
 const $=id=>document.getElementById(id);
 const money=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:2}).format(Number(n)||0);
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-const save=()=>{localStorage.setItem(KEY,JSON.stringify(db));scheduleSync();};
+const save=()=>{localStorage.setItem(KEY,JSON.stringify(db));scheduleGoogleSync();};
 const clone=o=>JSON.parse(JSON.stringify(o));
 
 function go(page){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$(page).classList.add('active');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));renderAll();window.scrollTo(0,0)}
@@ -1011,55 +1016,148 @@ function loadOrder(id){
   go('nuevoPedido');
 }
 
-/* --- SYNC A GOOGLE SHEETS (una sola dirección: app -> Sheets, vía Apps Script) --- */
-let __syncTimer=null;
-function guardarDriveUrl(){
-  db.driveSyncUrl = ($('driveSyncUrl').value||'').trim();
-  localStorage.setItem(KEY,JSON.stringify(db));
-  alert(db.driveSyncUrl ? 'URL guardada. De ahora en más, cada cambio que guardes se sube solo a tu hoja de Sheets.' : 'URL borrada. Ya no se va a intentar subir nada.');
-  renderSyncStatus();
-  if(db.driveSyncUrl) syncAllToDrive(false);
+/* --- GOOGLE SHEETS: OAuth + sincronización directa, sin Apps Script --- */
+const GOOGLE_CLIENT_ID='685018611244-h90nag2q24086m9acu44emargqlb4h8f.apps.googleusercontent.com';
+const GOOGLE_API_KEY='AIzaSyC2WjhW4ManG2vIMc3Vbxl4LCgFY436K4E';
+const GOOGLE_SHEET_ID='1yvfd54dtS3K2xOJjWKNOlon3WQhYScjxZIe-M5UvOP4';
+const GOOGLE_SCOPE='https://www.googleapis.com/auth/spreadsheets';
+const GOOGLE_RANGE='A1:A2000';
+const GOOGLE_CHUNK_SIZE=45000;
+let __googleToken=null;
+let __googleTokenClient=null;
+let __googleSyncTimer=null;
+let __googleAuthReady=false;
+
+function setGoogleStatus(msg,ok){
+  const el=$('googleSyncStatus');
+  if(!el)return;
+  el.textContent=msg;
+  el.style.color=ok?'var(--green-700)':'var(--muted)';
 }
-function scheduleSync(){
-  if(!db.driveSyncUrl) return;
-  clearTimeout(__syncTimer);
-  __syncTimer=setTimeout(()=>syncAllToDrive(false), 1200); // pequeño debounce para no spamear si hay varios cambios seguidos
-}
-async function syncAllToDrive(manual){
-  if(!db.driveSyncUrl){ if(manual) alert('Primero guardá la URL del Web App de Apps Script en Ajustes.'); return; }
-  const payload={
-    papers:db.papers, prices:db.prices, costs:db.costs, articles:db.articles,
-    orders:db.orders, inkPurchases:db.inkPurchases, freeArticleCatalog:db.freeArticleCatalog,
-    lastOrderNumber:db.lastOrderNumber, syncedAt:new Date().toISOString()
-  };
-  try{
-    // mode:'no-cors' porque los Web Apps de Apps Script no devuelven cabeceras CORS;
-    // esto significa que no podemos leer la respuesta ni confirmar 100% el éxito, pero el envío llega igual.
-    // 1) Intento con CORS (text/plain evita el preflight) para poder LEER la respuesta del script.
-    try{
-      const r = await fetch(db.driveSyncUrl, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(payload) });
-      const j = await r.json().catch(()=>null);
-      db._syncState = (r.ok && j && j.ok!==false) ? 'ok' : 'error';
-    }catch(e1){
-      // 2) Respaldo: no-cors. Se envía, pero NO se puede confirmar que Google lo guardó.
-      await fetch(db.driveSyncUrl, { method:'POST', mode:'no-cors', body: JSON.stringify(payload) });
-      db._syncState = 'unconfirmed';
+
+function initGoogleAuth(){
+  if(__googleAuthReady)return true;
+  if(!window.google || !google.accounts || !google.accounts.oauth2)return false;
+  __googleTokenClient=google.accounts.oauth2.initTokenClient({
+    client_id:GOOGLE_CLIENT_ID,
+    scope:GOOGLE_SCOPE,
+    callback:(response)=>{
+      if(response && response.error){
+        __googleToken=null;
+        setGoogleStatus('❌ No se pudo conectar con Google.',false);
+        return;
+      }
+      __googleToken=response.access_token;
+      setGoogleStatus('✅ Google conectado. La app puede guardar y recuperar tus datos.',true);
+      guardarGoogleAhora(false);
     }
-    db._syncPending = (db._syncState==='error');
-  }catch(err){
-    db._syncState = 'error';
-    db._syncPending = true; // sin conexión u otro error de red: queda para reintentar
+  });
+  __googleAuthReady=true;
+  return true;
+}
+
+function conectarGoogle(){
+  if(!initGoogleAuth()){
+    setGoogleStatus('⏳ Google todavía está cargando. Probá de nuevo en un segundo.',false);
+    return;
   }
-  localStorage.setItem(KEY,JSON.stringify(db));
-  renderSyncStatus();
-  if(manual) alert(db._syncState==='ok' ? '✅ Google Sheets confirmó que guardó los datos.' : db._syncState==='unconfirmed' ? '📤 Enviado, pero Google no permite confirmar la recepción. Revisá tu hoja.' : '❌ Error al sincronizar (revisá tu conexión o la URL).');
+  __googleTokenClient.requestAccessToken({prompt:'consent'});
 }
-function renderSyncStatus(){
-  if(!$('syncStatus')) return;
-  if($('driveSyncUrl') && document.activeElement!==$('driveSyncUrl')) $('driveSyncUrl').value = db.driveSyncUrl||'';
-  if(!db.driveSyncUrl){ $('syncStatus').textContent='Todavía no configuraste la URL del Web App.'; return; }
-  $('syncStatus').textContent = db._syncState==='error' ? '❌ Error en el último envío. Probá "Sincronizar ahora".' : db._syncState==='unconfirmed' ? '📤 Último envío realizado, sin confirmación de Google.' : db._syncState==='ok' ? '✅ Confirmado por Google Sheets.' : 'Sin envíos todavía.';
+
+function googlePayload(){
+  const copy=JSON.parse(JSON.stringify(db));
+  delete copy.driveSyncUrl;
+  delete copy._syncState;
+  delete copy._syncPending;
+  delete copy._googleLastSync;
+  return copy;
 }
+
+async function googleFetch(url,options={}){
+  if(!__googleToken)throw new Error('NO_TOKEN');
+  const headers=Object.assign({},options.headers||{}, {Authorization:'Bearer '+__googleToken});
+  const r=await fetch(url,Object.assign({},options,{headers}));
+  if(r.status===401 || r.status===403){
+    __googleToken=null;
+    setGoogleStatus('🔐 Google necesita que vuelvas a conectar la cuenta.',false);
+    throw new Error('AUTH');
+  }
+  if(!r.ok){
+    const txt=await r.text().catch(()=> '');
+    throw new Error('HTTP '+r.status+' '+txt);
+  }
+  return r;
+}
+
+async function guardarGoogleAhora(manual){
+  if(!__googleToken){
+    if(manual) alert('Primero tocá "Conectar con Google".');
+    return;
+  }
+  try{
+    const json=JSON.stringify(googlePayload());
+    const chunks=[];
+    for(let i=0;i<json.length;i+=GOOGLE_CHUNK_SIZE)chunks.push(json.slice(i,i+GOOGLE_CHUNK_SIZE));
+    const stamp=new Date().toISOString();
+    const values=[['NOTFOME_V1|'+chunks.length+'|'+stamp],...chunks.map(x=>[x])];
+
+    const clearUrl='https://sheets.googleapis.com/v4/spreadsheets/'+encodeURIComponent(GOOGLE_SHEET_ID)+'/values/'+encodeURIComponent(GOOGLE_RANGE)+':clear?key='+encodeURIComponent(GOOGLE_API_KEY);
+    await googleFetch(clearUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+
+    const updateUrl='https://sheets.googleapis.com/v4/spreadsheets/'+encodeURIComponent(GOOGLE_SHEET_ID)+'/values/A1?valueInputOption=RAW&key='+encodeURIComponent(GOOGLE_API_KEY);
+    await googleFetch(updateUrl,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({range:'A1',majorDimension:'ROWS',values})});
+
+    db._googleLastSync=stamp;
+    localStorage.setItem(KEY,JSON.stringify(db));
+    setGoogleStatus('✅ Datos guardados en Google · '+new Date(stamp).toLocaleString('es-AR'),true);
+    if(manual)alert('✅ Datos guardados en Google Sheets.');
+  }catch(err){
+    setGoogleStatus(err.message==='NO_TOKEN'?'🔐 Conectá Google primero.':'❌ No se pudieron guardar los datos en Google.',false);
+    if(manual)alert('❌ No se pudieron guardar los datos. Revisá la conexión con Google.');
+  }
+}
+
+async function recuperarGoogle(){
+  if(!__googleToken){alert('Primero tocá "Conectar con Google".');return;}
+  if(!confirm('Esto reemplazará los datos locales de NotFome por la copia guardada en Google. ¿Continuar?'))return;
+  try{
+    const url='https://sheets.googleapis.com/v4/spreadsheets/'+encodeURIComponent(GOOGLE_SHEET_ID)+'/values/'+encodeURIComponent(GOOGLE_RANGE)+'?majorDimension=ROWS&key='+encodeURIComponent(GOOGLE_API_KEY);
+    const r=await googleFetch(url);
+    const data=await r.json();
+    const rows=data.values||[];
+    if(!rows.length || !rows[0][0] || !String(rows[0][0]).startsWith('NOTFOME_V1|'))throw new Error('NO_DATA');
+    const parts=String(rows[0][0]).split('|');
+    const count=Math.max(0,Number(parts[1])||0);
+    const json=rows.slice(1,count+1).map(row=>row[0]||'').join('');
+    const restored=JSON.parse(json);
+    if(!restored || typeof restored!=='object')throw new Error('BAD_DATA');
+
+    const keepDriveUrl=db.driveSyncUrl||'';
+    db=restored;
+    db.driveSyncUrl=keepDriveUrl;
+    db._googleLastSync=new Date().toISOString();
+    localStorage.setItem(KEY,JSON.stringify(db));
+    setGoogleStatus('✅ Datos recuperados desde Google.',true);
+    renderAll();
+    alert('✅ Datos recuperados. NotFome ya está usando la copia de Google.');
+  }catch(err){
+    setGoogleStatus(err.message==='NO_DATA'?'⚠️ La hoja todavía no tiene una copia de NotFome.':'❌ No se pudieron recuperar los datos.',false);
+    if(err.message==='NO_DATA')alert('Todavía no hay datos de NotFome guardados en esa hoja. Primero guardá los datos.');
+    else alert('❌ No se pudieron recuperar los datos desde Google.');
+  }
+}
+
+function scheduleGoogleSync(){
+  clearTimeout(__googleSyncTimer);
+  if(!__googleToken)return;
+  __googleSyncTimer=setTimeout(()=>guardarGoogleAhora(false),1200);
+}
+
+window.addEventListener('load',()=>{
+  const tryInit=()=>{if(!initGoogleAuth())setTimeout(tryInit,500)};
+  tryInit();
+  if(db._googleLastSync)setGoogleStatus('☁️ Último guardado en Google · '+new Date(db._googleLastSync).toLocaleString('es-AR'),false);
+});
 
 let __guardando=false;
 async function guardarPedido(){
