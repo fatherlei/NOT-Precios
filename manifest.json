@@ -1,15 +1,14 @@
 {
-  "name": "NOT · Calculadora y Gestión",
+  "name": "NOT · Calculadora y gestión",
   "short_name": "NOT",
-  "description": "Calculadora, costos, pedidos, stock y gestión para Notfome.",
-  "lang": "es-AR",
-  "dir": "ltr",
+  "description": "Pedidos, costos y balance de NOT",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#ff66c4",
+  "lang": "es",
   "icons": [
     {
       "src": "icon-192.png",
