@@ -1,26 +1,14 @@
 {
-  "name": "NOT · Calculadora y gestión",
+  "name": "NOT - Gestión",
   "short_name": "NOT",
-  "description": "Pedidos, costos y balance de NOT",
-  "start_url": "./",
-  "scope": "./",
+  "description": "Calculadora y gestión de pedidos, stock y balance para NOT",
+  "start_url": "./index.html",
   "display": "standalone",
+  "background_color": "#f7f7f8",
+  "theme_color": "#ed3d86",
   "orientation": "portrait",
-  "background_color": "#ffffff",
-  "theme_color": "#ff66c4",
-  "lang": "es",
   "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]
 }

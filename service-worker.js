@@ -1,4 +1,4 @@
-const CACHE = 'not-app-v27';
+const CACHE = 'not-app-v32';
 const ASSETS = ['./index.html', './manifest.json', './logo.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {
