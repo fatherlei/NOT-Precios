@@ -1,15 +1,14 @@
 {
-  "name": "TINTA",
-  "short_name": "TINTA",
-  "description": "TINTA · Gestión, costos, pedidos y calculadora para emprendimientos creativos.",
-  "start_url": ".",
-  "scope": "./",
+  "name": "NOT - Gestión",
+  "short_name": "NOT",
+  "description": "Calculadora y gestión de pedidos, stock y balance para NOT",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ee4aa0",
-  "lang": "es-AR",
+  "background_color": "#f7f7f8",
+  "theme_color": "#ed3d86",
+  "orientation": "portrait",
   "icons": [
-    {"src":"icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
-    {"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]
 }
