@@ -800,7 +800,7 @@ nav button>span:last-child{display:block;line-height:1.1;white-space:nowrap;over
       </svg>
       <span>Exportar / Importar datos</span>
     </h3>
-    <div class="settings-note">Exportá tus datos a un archivo Excel/CSV, o importá uno con ese mismo formato para cargar papeles y costos de referencia (no toca tus pedidos).</div>
+    <div class="settings-note">Exportá tus datos a un archivo Excel/CSV, o importá uno con ese mismo formato para recuperar papeles, costos y pedidos.</div>
     <div class="settings-tools">
       <button class="settings-tool sky" type="button" onclick="exportCSV()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
@@ -819,7 +819,7 @@ nav button>span:last-child{display:block;line-height:1.1;white-space:nowrap;over
     <details style="margin-top:12px;font-size:12.5px;color:var(--muted)">
       <summary style="cursor:pointer;color:var(--pink-700,#a51f72);font-weight:700">Copia de seguridad completa (incluye pedidos)</summary>
       <div style="margin-top:10px">
-        El Excel/CSV de arriba no incluye tus pedidos. Para un respaldo con TODO (pedidos, pagos, fotos), usá esta copia:
+        La copia JSON conserva además los datos completos de cada pedido (pagos, fotos y demás campos). Para restaurar todo exactamente, usá esta copia:
         <div class="settings-tools" style="margin-top:8px">
           <button class="settings-tool sky" type="button" onclick="exportJSON()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
@@ -2057,34 +2057,108 @@ function importExcelFileHandler(input){
       const wb=XLSX.read(e.target.result,{type:'array'});
       const sheet=wb.Sheets[wb.SheetNames[0]];
       const rows=XLSX.utils.sheet_to_json(sheet,{header:1,defval:''});
-      const papeles=[]; const costos=[];
-      let leyendoPapeles=false;
+      const papeles=[]; const costos=[]; const itemRows=[]; const resumenRows=[];
+      let leyendoPapeles=false, leyendoArticulos=false, leyendoResumen=false;
+      const num=v=>{
+        if(typeof v==='number') return v;
+        let x=String(v??'').trim().replace(/\s/g,'');
+        if(!x) return 0;
+        // Accept both 1234.56 and 1234,56 formats.
+        if(x.includes(',') && x.includes('.')) x=x.replace(/\./g,'').replace(',','.');
+        else if(x.includes(',')) x=x.replace(',','.');
+        return Number(x)||0;
+      };
+      const cleanOrderId=v=>String(v??'').trim().replace(/^#/,'');
       for(const r of rows){
         const c0=String(r[0]||'').trim();
         const c0low=c0.toLowerCase();
-        if(c0low==='papel'&&String(r[1]||'').toLowerCase().includes('costo por hoja')){ leyendoPapeles=true; continue; }
+        if(c0low==='papel'&&String(r[1]||'').toLowerCase().includes('costo por hoja')){ leyendoPapeles=true; leyendoArticulos=false; leyendoResumen=false; continue; }
+        if(c0low==='artículos vendidos'||c0low==='articulos vendidos'){ leyendoPapeles=false; leyendoArticulos=true; leyendoResumen=false; continue; }
+        if(c0low==='resumen de pedidos'){ leyendoPapeles=false; leyendoArticulos=false; leyendoResumen=true; continue; }
         if(leyendoPapeles){
           if(!c0){ leyendoPapeles=false; continue; }
-          const costo=Number(r[1])||0, stock=Number(r[2])||0;
-          if(costo||stock) papeles.push({name:c0,costo,stock});
+          if(c0low==='tinta $/litro') leyendoPapeles=false;
+          else { const costo=num(r[1]), stock=num(r[2]); if(costo||stock) papeles.push({name:c0,costo,stock}); continue; }
+        }
+        if(leyendoArticulos){
+          if(c0low==='artículo'||c0low==='articulo') continue;
+          if(c0) itemRows.push(r);
+          continue;
+        }
+        if(leyendoResumen){
+          if(c0low==='id pedido') continue;
+          if(c0) resumenRows.push(r);
           continue;
         }
         if(COST_LABELS[c0low]!==undefined && r[1]!==''&&r[1]!==undefined){
-          costos.push({label:c0,target:COST_LABELS[c0low],value:Number(r[1])||0});
+          costos.push({label:c0,target:COST_LABELS[c0low],value:num(r[1])});
         }
       }
-      if(!papeles.length && !costos.length){ alert('No se encontró ningún dato reconocible en ese archivo.'); input.value=''; return; }
-      const resumen=`Se encontraron:\n${papeles.length?'• '+papeles.length+' papel(es): '+papeles.map(p=>p.name).join(', ')+'\n':''}${costos.length?'• '+costos.length+' valor(es) de costos':''}\n\nEsto va a actualizar esos papeles y costos. No se tocan tus pedidos. ¿Importar?`;
+
+      // Rebuild orders from the two order sections of the exported CSV.
+      const orderMap=new Map();
+      resumenRows.forEach(r=>{
+        const oid=cleanOrderId(r[0]); if(!oid) return;
+        const orderNumber=parseInt(oid,10)||0;
+        orderMap.set(oid,{
+          id:Date.now()+orderMap.size,
+          orderNumber,
+          client:String(r[2]||'').trim(),
+          phone:'',
+          delivery:String(r[1]||'').trim(),
+          status:String(r[3]||'Pendiente').trim()||'Pendiente',
+          paid:false,
+          sena:0,
+          tematica:'',measure:'',color:'',details:'',foto:null,
+          items:[],
+          total:num(r[4]),
+          cost:num(r[5]),
+          article:'Varios',
+          payments:[],
+          registered:'',
+          registeredISO:''
+        });
+      });
+      itemRows.forEach(r=>{
+        const oid=cleanOrderId(r[2]); if(!oid) return;
+        let o=orderMap.get(oid);
+        if(!o){
+          const orderNumber=parseInt(oid,10)||0;
+          o={id:Date.now()+orderMap.size,orderNumber,client:String(r[1]||'').trim(),phone:'',delivery:String(r[3]||'').trim(),status:String(r[5]||'Pendiente').trim()||'Pendiente',paid:false,sena:0,tematica:'',measure:'',color:'',details:'',foto:null,items:[],total:0,cost:0,article:'Varios',payments:[],registered:String(r[4]||'').trim(),registeredISO:''};
+          orderMap.set(oid,o);
+        }
+        if(!o.registered) o.registered=String(r[4]||'').trim();
+        if(!o.delivery) o.delivery=String(r[3]||'').trim();
+        if(!o.client) o.client=String(r[1]||'').trim();
+        const price=num(r[7]), cost=num(r[8]), quantity=num(r[6])||1;
+        o.items.push({name:String(r[0]||'').trim(),detail:String(r[11]||'').trim(),quote:{quantity,total:price,cost,materialSheets:0}});
+      });
+      const importedOrders=[...orderMap.values()].sort((a,b)=>(a.orderNumber||0)-(b.orderNumber||0));
+      importedOrders.forEach(o=>{
+        if(!o.total) o.total=o.items.reduce((a,it)=>a+(Number(it.quote?.total)||0),0);
+        if(!o.cost) o.cost=o.items.reduce((a,it)=>a+(Number(it.quote?.cost)||0),0);
+        o.registeredISO=parseRegistered(o.registered)||o.registered||'';
+        if(!o.items.length) o.article='Varios';
+      });
+
+      if(!papeles.length&&!costos.length&&!importedOrders.length){ alert('No se encontró ningún dato reconocible en ese archivo.'); input.value=''; return; }
+      const resumen=`Se encontraron:\n${papeles.length?'• '+papeles.length+' papel(es)\n':''}${costos.length?'• '+costos.length+' costo(s)\n':''}${importedOrders.length?'• '+importedOrders.length+' pedido(s), con '+importedOrders.reduce((a,o)=>a+o.items.length,0)+' artículo(s)\n':''}\nLa importación actualizará papeles y costos, y reemplazará el historial de pedidos por los pedidos del archivo. ¿Importar?`;
       if(!await askOk(resumen)){ input.value=''; return; }
+
       papeles.forEach(p=>{
         let existente=db.papers.find(x=>x.name.trim().toLowerCase()===p.name.toLowerCase());
         if(existente){ existente.packPrice=p.costo; existente.packQty=1; existente.stock=p.stock; }
         else { db.papers.push({id:db.nextPaperId++,name:p.name,packPrice:p.costo,packQty:1,stock:p.stock,purchases:[]}); }
       });
       costos.forEach(c=>{ db[c.target[0]][c.target[1]]=c.value; });
+      if(importedOrders.length){
+        db.orders=importedOrders;
+        db.lastOrderNumber=Math.max(db.lastOrderNumber||0,...importedOrders.map(o=>Number(o.orderNumber)||0));
+      }
       save(); renderAll();
-      alert('✅ Importación completa: '+papeles.length+' papel(es) y '+costos.length+' costo(s) actualizados.');
+      alert(`✅ Importación completa: ${papeles.length} papel(es), ${costos.length} costo(s) y ${importedOrders.length} pedido(s).`);
     }catch(err){
+      console.error(err);
       alert('No se pudo leer el archivo. Verificá que sea un .xlsx, .xls o .csv válido.');
     }
     input.value='';
