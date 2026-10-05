@@ -895,7 +895,7 @@ db.articles.forEach(a=>{
   }
 });
 db.orders=(db.orders||[]).map(o=>Object.assign({cost:0,materialSheets:0,paid:false,sena:0},o));
-db.orders.forEach(o=>{ if(!Array.isArray(o.payments)){ o.payments=[]; const d=new Date().toISOString().slice(0,10); const se=Number(o.sena)||0; if(se>0) o.payments.push({date:d,amount:se,method:'Seña'}); if(o.paid&&(Number(o.total)||0)>se) o.payments.push({date:d,amount:round2((Number(o.total)||0)-se),method:'Saldo'}); syncPay(o);} if(!o.snap) snapConsumo(o); });
+db.orders.forEach(o=>{ if(!Array.isArray(o.payments)){ o.payments=[]; const d=isoLocal(new Date()); const se=Number(o.sena)||0; if(se>0) o.payments.push({date:d,amount:se,method:'Seña'}); if(o.paid&&(Number(o.total)||0)>se) o.payments.push({date:d,amount:round2((Number(o.total)||0)-se),method:'Saldo'}); syncPay(o);} if(!o.snap) snapConsumo(o); });
 db.papers=db.papers||[];
 db.inkPurchases=db.inkPurchases||[];
 db.freeArticleCatalog=db.freeArticleCatalog||[];
@@ -940,7 +940,12 @@ if (typeof db.lastOrderNumber === 'undefined') {
         if(!o.orderNumber) o.orderNumber = db.lastOrderNumber;
     });
 }
-db.orders.forEach(o=>{ if(!o.registeredISO) { const d=parseRegistered(o.registered); if(d) o.registeredISO=d; } });
+db.orders.forEach(o=>{
+  const d=orderDay(o); if(d) o.registeredISO=d;
+  const dl=parseRegistered(o.delivery); if(dl) o.delivery=dl;
+  const r=parseRegistered(o.registered); if(r) o.registered=r.split('-').reverse().join('/');
+  else if(d) o.registered=d.split('-').reverse().join('/');
+});
 
 let editId=null, selected=null;
 let currentCart=[]; 
@@ -1021,32 +1026,41 @@ function costBreakdown(paper, sheets){
   const total=parts.reduce((a,x)=>a+(Number(x[1])||0),0);
   return {parts, total};
 }
-function parseRegistered(s){
-  if(s===null || s===undefined || s==='') return null;
-  if(s instanceof Date && !isNaN(s)) {
-    return `${s.getFullYear()}-${String(s.getMonth()+1).padStart(2,'0')}-${String(s.getDate()).padStart(2,'0')}`;
+function isoLocal(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+// Interpreta cualquier fecha que pueda venir de la app, Excel, Google Sheets o un CSV:
+// ISO, DD/MM/AAAA (con o sin hora), D/M/AA, serial de Excel con punto o coma decimal.
+function parseDateParts(v){
+  if(v===null||v===undefined||v==='') return null;
+  if(v instanceof Date) return isNaN(v)?null:{y:v.getFullYear(),m:v.getMonth()+1,d:v.getDate()};
+  const ok=(y,m,d)=>{
+    if(y<100) y+=2000;
+    if(m>12&&d<=12){const t=m;m=d;d=t;}
+    if(y<2000||y>2100||m<1||m>12||d<1||d>31) return null;
+    return {y,m,d};
+  };
+  const s=String(v).trim().replace(/^'+/,'');
+  if(!s) return null;
+  if(/^\d{4,6}(?:[.,]\d+)?$/.test(s)){
+    const n=Number(s.replace(',','.'));
+    if(!(n>=20000&&n<=100000)) return null;
+    const dt=new Date(Date.UTC(1899,11,30)+Math.floor(n)*86400000);
+    return ok(dt.getUTCFullYear(),dt.getUTCMonth()+1,dt.getUTCDate());
   }
-  const raw=String(s).trim();
-  if(!raw) return null;
-  // Excel/Google Sheets puede entregar una fecha como número serial, incluso
-  // cuando viene de CSV (por ejemplo: 46268.874444444446).
-  // La parte decimal representa la hora; para Balance usamos solamente el día.
-  if(/^\d+(?:\.\d+)?$/.test(raw)) {
-    const n=Number(raw);
-    if(Number.isFinite(n) && n>=20000 && n<=100000 && typeof XLSX!=='undefined' && XLSX.SSF?.parse_date_code){
-      const dc=XLSX.SSF.parse_date_code(n);
-      if(dc && dc.y && dc.m && dc.d){
-        return `${dc.y}-${String(dc.m).padStart(2,'0')}-${String(dc.d).padStart(2,'0')}`;
-      }
-    }
-  }
-  // ISO / formato de Excel/Google Sheets: YYYY-MM-DD, YYYY/MM/DD o YYYY.MM.DD
-  let m=raw.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})(?:[T ]|$)/);
-  if(m) return `${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;
-  // Formato argentino: DD/MM/YYYY, DD-MM-YYYY o DD.MM.YYYY
-  m=raw.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})(?:[ T]|$)/);
-  if(m) return `${m[3]}-${String(m[2]).padStart(2,'0')}-${String(m[1]).padStart(2,'0')}`;
+  let m=s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})(?:[T ,]|$)/);
+  if(m) return ok(+m[1],+m[2],+m[3]);
+  m=s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2}|\d{4})(?:[T ,]|$)/);
+  if(m) return ok(+m[3],+m[2],+m[1]);
   return null;
+}
+function parseRegistered(s){
+  const p=parseDateParts(s);
+  return p?`${p.y}-${String(p.m).padStart(2,'0')}-${String(p.d).padStart(2,'0')}`:null;
+}
+// Día del pedido para el Balance: fecha de registro; si no se puede leer, la de entrega.
+function orderDay(o){
+  const iso=/^\d{4}-\d{2}-\d{2}$/;
+  if(o.registeredISO && iso.test(o.registeredISO)) return o.registeredISO;
+  return parseRegistered(o.registered)||parseRegistered(o.delivery)||null;
 }
 
 /* --- PAGOS: o.payments es la fuente de verdad; o.sena y o.paid se derivan --- */
@@ -1230,7 +1244,7 @@ async function registrarPago(id){
   if(!(r.amount>0)){alert('Ingresá un importe mayor a 0.');return;}
   if(r.amount>saldo&&!(await askOk('El importe supera el saldo ('+money(saldo)+'). ¿Registrarlo igual?')))return;
   o.payments=o.payments||[];
-  o.payments.push({date:new Date().toISOString().slice(0,10),amount:r.amount,method:r.method||'Efectivo'});
+  o.payments.push({date:isoLocal(new Date()),amount:r.amount,method:r.method||'Efectivo'});
   syncPay(o);save();renderAll();refrescarFlotante();
 }
 async function borrarPago(id,i){
@@ -1251,7 +1265,7 @@ function adjustStock(items, sign){
 
 function addPurchase(i){
   const paper = db.papers[i]; if(!paper) return;
-  const date = $('buyDate_'+i).value || new Date().toISOString().slice(0,10);
+  const date = $('buyDate_'+i).value || isoLocal(new Date());
   const price = +$('buyPrice_'+i).value || 0;
   const qty = +$('buyQty_'+i).value || 0;
   if(qty<=0){alert('Ingresá la cantidad de hojas compradas.');return;}
@@ -1270,7 +1284,7 @@ async function deletePaperPurchase(pi, ji){
   save(); renderAll();
 }
 function addInkPurchase(){
-  const date = $('inkBuyDate').value || new Date().toISOString().slice(0,10);
+  const date = $('inkBuyDate').value || isoLocal(new Date());
   const price = +$('inkBuyPrice').value || 0;
   const ml = +$('inkBuyMl').value || 0;
   if(ml<=0){alert('Ingresá los mililitros comprados.');return;}
@@ -1287,7 +1301,7 @@ async function deleteInkPurchase(j){
 }
 function renderInkPurchases(){
   if(!$('inkPurchaseList')) return;
-  if($('inkBuyDate') && !$('inkBuyDate').value) $('inkBuyDate').value=new Date().toISOString().slice(0,10);
+  if($('inkBuyDate') && !$('inkBuyDate').value) $('inkBuyDate').value=isoLocal(new Date());
   const list = db.inkPurchases||[];
   $('inkPurchaseList').innerHTML = list.length ? `<div style="margin-top:10px;font-size:12px;color:var(--muted)">${list.map((c,j)=>`<div class="row" style="padding:4px 0"><span>📅 ${c.date.split('-').reverse().join('/')} · ${c.ml} ml · ${money(c.price)}</span><button class="danger" style="padding:3px 8px;font-size:10px" onclick="deleteInkPurchase(${j})">✕</button></div>`).join('')}</div>` : '<div class="empty">Sin compras registradas.</div>';
 }
@@ -1311,7 +1325,7 @@ function renderPriceInputs(){
    </div>
    <div class="section-title" style="margin-top:14px;font-size:13px">🧾 Registrar compra</div>
    <div class="form">
-     <div><label>Fecha</label><input id="buyDate_${i}" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+     <div><label>Fecha</label><input id="buyDate_${i}" type="date" value="${isoLocal(new Date())}"></div>
      <div><label>Precio pagado</label><input id="buyPrice_${i}" type="number" placeholder="$"></div>
      <div><label>Hojas compradas</label><input id="buyQty_${i}" type="number" placeholder="0"></div>
    </div>
@@ -1713,12 +1727,12 @@ async function guardarPedido(){
       if(nuevaSena>0) payments[idx].amount=nuevaSena;
       else payments.splice(idx,1);
     }else if(nuevaSena>0){
-      payments.unshift({date:new Date().toISOString().slice(0,10),amount:nuevaSena,method:'Seña'});
+      payments.unshift({date:isoLocal(new Date()),amount:nuevaSena,method:'Seña'});
     }
     data.payments=payments;
     pagado=payments.reduce((a,p)=>a+(Number(p.amount)||0),0);
   }else{
-    data.payments=data.sena>0?[{date:new Date().toISOString().slice(0,10),amount:data.sena,method:'Seña'}]:[];
+    data.payments=data.sena>0?[{date:isoLocal(new Date()),amount:data.sena,method:'Seña'}]:[];
   }
   if(data.status==='Entregado'&&gt-pagado>0&&!await askOk('Este pedido tiene un saldo de '+money(gt-pagado)+'. ¿Marcarlo como Entregado igual?'))return;
   let savedOrder;
@@ -1920,7 +1934,7 @@ function renderCalendarHtml(){
   const first=new Date(year,month,1);
   const startWeekday=first.getDay();
   const daysInMonth=new Date(year,month+1,0).getDate();
-  const todayIso=new Date().toISOString().slice(0,10);
+  const todayIso=isoLocal(new Date());
   const counts={};
   db.orders.forEach(o=>{ if(o.status==='Entregado'||!o.delivery) return; counts[o.delivery]=(counts[o.delivery]||0)+1; });
   const monthNames=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -2056,13 +2070,13 @@ function exportCSV(){
  db.orders.forEach(o=>rows.push(['#'+String(o.orderNumber||0).padStart(2,'0'), o.delivery, o.client, o.status, round2(o.total), round2(o.cost), round2((o.total||0)-(o.cost||0))]));
 
  const csv=rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\r\n');
- const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='NOT_datos_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+ const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='NOT_datos_'+isoLocal(new Date())+'.csv';a.click();
 }
 async function resetPedidos(){if(await askOk('¿Borrar historial de pedidos?')){db.orders=[];save();renderAll();alert('Borrados.');}}
 async function resetApp(){if(await askOk('¿Borrar TODO?')){localStorage.removeItem(KEY);location.reload()}}
 function exportJSON(){
  const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
- const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='NOT_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='NOT_backup_'+isoLocal(new Date())+'.json';a.click();
 }
 const COST_LABELS={
   'tinta $/litro':['costs','inkPrice'],
@@ -2134,33 +2148,7 @@ function importExcelFileHandler(input){
       const cleanOrderId=v=>String(v??'').trim().replace(/^#/,'');
 
       // Convierte fechas de Excel/Google Sheets/CSV sin cambiar el día por zona horaria.
-      const dateParts=v=>{
-        if(v instanceof Date && !isNaN(v)) return {y:v.getFullYear(),m:v.getMonth()+1,d:v.getDate()};
-        if(typeof v==='number' && isFinite(v)){
-          const dc=XLSX.SSF.parse_date_code(v);
-          if(dc && dc.y) return {y:dc.y,m:dc.m,d:dc.d};
-        }
-        const s=String(v??'').trim(); if(!s) return null;
-        // En CSV, Excel puede serializar la fecha como texto numérico, por ejemplo
-        // "46268.874444444446". Convertimos el serial y descartamos solamente la hora.
-        if(/^\d+(?:\.\d+)?$/.test(s)) {
-          const n=Number(s);
-          if(Number.isFinite(n) && n>=20000 && n<=100000){
-            if(typeof XLSX!=='undefined' && XLSX.SSF?.parse_date_code){
-              const dc=XLSX.SSF.parse_date_code(n);
-              if(dc && dc.y && dc.m && dc.d) return {y:dc.y,m:dc.m,d:dc.d};
-            }
-            const base=Date.UTC(1899,11,30);
-            const dt=new Date(base+Math.round(n*86400000));
-            if(!isNaN(dt)) return {y:dt.getUTCFullYear(),m:dt.getUTCMonth()+1,d:dt.getUTCDate()};
-          }
-        }
-        let m=s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})(?:[T ]|$)/);
-        if(m) return {y:+m[1],m:+m[2],d:+m[3]};
-        m=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})(?:[ T]|$)/);
-        if(m) return {y:+m[3],m:+m[2],d:+m[1]};
-        return null;
-      };
+      const dateParts=v=>parseDateParts(v);
       const deliveryDate=v=>{
         const p=dateParts(v); if(!p) return String(v??'').trim();
         return `${p.y}-${String(p.m).padStart(2,'0')}-${String(p.d).padStart(2,'0')}`;
@@ -2244,7 +2232,8 @@ function importExcelFileHandler(input){
         if(reg) o.registered=reg;
         if(!o.total) o.total=o.items.reduce((a,it)=>a+(Number(it.quote?.total)||0),0);
         if(!o.cost) o.cost=o.items.reduce((a,it)=>a+(Number(it.quote?.cost)||0),0);
-        o.registeredISO=parseRegistered(o.registered)||'';
+        o.registeredISO=parseRegistered(o.registered)||parseRegistered(o.delivery)||'';
+        if(o.registeredISO) o.registered=o.registeredISO.split('-').reverse().join('/');
         if(!o.items.length) o.article='Varios';
       });
 
@@ -2296,7 +2285,7 @@ function importJSONFile(input){
 /* --- BALANCE --- */
 function getOrdersInRange(from, to){
   return db.orders.filter(o=>{
-    const d = o.registeredISO || parseRegistered(o.registered);
+    const d = orderDay(o);
     return d && d>=from && d<=to;
   });
 }
@@ -2321,9 +2310,9 @@ function computeBalance(from, to){
 function dailySeries(from, to, orders){
   const days=[]; let d=new Date(from+'T00:00:00'); const end=new Date(to+'T00:00:00');
   if(isNaN(d)||isNaN(end)||d>end) return [];
-  while(d<=end){ days.push({date:d.toISOString().slice(0,10), ventas:0, costos:0, gasto:0}); d.setDate(d.getDate()+1); }
+  while(d<=end){ days.push({date:isoLocal(d), ventas:0, costos:0, gasto:0}); d.setDate(d.getDate()+1); }
   const map={}; days.forEach(x=>map[x.date]=x);
-  orders.forEach(o=>{ const key=o.registeredISO||parseRegistered(o.registered); if(map[key]){ map[key].ventas+=Number(o.total)||0; map[key].costos+=Number(o.cost)||0; } });
+  orders.forEach(o=>{ const key=orderDay(o); if(map[key]){ map[key].ventas+=Number(o.total)||0; map[key].costos+=Number(o.cost)||0; } });
   db.papers.forEach(p=>(p.purchases||[]).forEach(c=>{ if(map[c.date]) map[c.date].gasto += Number(c.price)||0; }));
   (db.inkPurchases||[]).forEach(c=>{ if(map[c.date]) map[c.date].gasto += Number(c.price)||0; });
   return days;
@@ -2390,17 +2379,17 @@ function balRange(kind){
   else if(kind==='lastmonth'){ from = new Date(now.getFullYear(), now.getMonth()-1, 1); to = new Date(now.getFullYear(), now.getMonth(), 0); }
   else if(kind==='year'){ from = new Date(now.getFullYear(), 0, 1); }
   else if(kind==='all'){
-    const dates = db.orders.map(o=>o.registeredISO||parseRegistered(o.registered)).filter(Boolean).sort();
+    const dates = db.orders.map(orderDay).filter(Boolean).sort();
     from = dates.length ? new Date(dates[0]+'T00:00:00') : new Date(now.getFullYear(), now.getMonth(), 1);
   }
-  $('balDesde').value = from.toISOString().slice(0,10);
-  $('balHasta').value = to.toISOString().slice(0,10);
+  $('balDesde').value = isoLocal(from);
+  $('balHasta').value = isoLocal(to);
   renderBalance();
 }
 function renderMeta(){
   const now=new Date();
-  const desdeMes=new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10);
-  const hastaHoy=now.toISOString().slice(0,10);
+  const desdeMes=isoLocal(new Date(now.getFullYear(),now.getMonth(),1));
+  const hastaHoy=isoLocal(now);
   const bm=computeBalance(desdeMes,hastaHoy);
   const meta=Number(db.salesGoal)||0;
   let html;
@@ -2428,8 +2417,8 @@ async function editarMeta(){
 }
 function renderBalance(){
   if(!$('balDesde')) return;
-  if(!$('balDesde').value){ const now=new Date(); $('balDesde').value = new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10); }
-  if(!$('balHasta').value){ $('balHasta').value = new Date().toISOString().slice(0,10); }
+  if(!$('balDesde').value){ const now=new Date(); $('balDesde').value = isoLocal(new Date(now.getFullYear(),now.getMonth(),1)); }
+  if(!$('balHasta').value){ $('balHasta').value = isoLocal(new Date()); }
   const from = $('balDesde').value, to = $('balHasta').value;
   const b = computeBalance(from, to);
   $('balVentas').textContent = money(b.ventas);
