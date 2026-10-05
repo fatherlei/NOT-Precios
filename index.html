@@ -462,6 +462,7 @@ nav button>span:last-child{display:block;line-height:1.1;white-space:nowrap;over
   main{padding-bottom:102px !important}
 }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 <header>
@@ -722,18 +723,12 @@ nav button>span:last-child{display:block;line-height:1.1;white-space:nowrap;over
     </div>
 
     <div class="settings-actions">
-      <button class="settings-action primary" type="button" onclick="guardarDesdeConfiguracion()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M5 4h11l3 3v13H5z"/><path d="M8 4v6h8V4"/><path d="M8 20v-6h8v6"/>
-        </svg>
-        <span>Guardar datos</span>
-      </button>
-      <button class="settings-action secondary" type="button" onclick="document.getElementById('googleSyncPanel')?.scrollIntoView({behavior:'smooth',block:'center'})">
+      <button class="settings-action secondary" type="button" style="grid-column:1/-1" onclick="document.getElementById('googleSyncPanel')?.scrollIntoView({behavior:'smooth',block:'center'})">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M7.5 18h9.2a4.3 4.3 0 0 0 .5-8.57A5.8 5.8 0 0 0 6.1 8.1 4.1 4.1 0 0 0 7.5 18Z"/>
           <path d="M8 14.5 10.5 12 13 14.5"/><path d="M10.5 12v6"/>
         </svg>
-        <span>Sincronización</span>
+        <span>Ir a Sincronización con Google</span>
       </button>
     </div>
   </div>
@@ -747,31 +742,35 @@ nav button>span:last-child{display:block;line-height:1.1;white-space:nowrap;over
       <span>Sincronización con Google</span>
     </h3>
     <div class="settings-note">
-      Guardá una copia de tus datos en Google para poder recuperarlos desde otro dispositivo.
-      <br><b>No se usan Web Apps de Apps Script en esta nueva versión.</b>
+      Cada cambio que guardes se sube solo a tu Hoja de Google (pedidos, papeles, precios, costos). Necesitás pegar acá la URL de tu Web App de Google Apps Script.
     </div>
+    <details style="margin:8px 0;font-size:12.5px;color:var(--muted)">
+      <summary style="cursor:pointer;color:var(--pink-700,#a51f72);font-weight:700">¿Cómo consigo esa URL? (una sola vez)</summary>
+      <ol style="margin:8px 0 0;padding-left:18px;line-height:1.6">
+        <li>Abrí tu Google Sheet → menú <b>Extensiones → Apps Script</b>.</li>
+        <li>Borrá lo que haya y pegá el código del archivo <b>Code.gs</b> (te lo paso aparte si no lo tenés a mano).</li>
+        <li>Guardá → <b>Implementar → Nueva implementación</b> → tipo "Aplicación web" → Ejecutar como "Yo" → Acceso "Cualquier usuario".</li>
+        <li>Autorizá los permisos (va a pedir confirmar 2 veces, es normal).</li>
+        <li>Copiá la URL que termina en <b>/exec</b> y pegala acá abajo.</li>
+      </ol>
+    </details>
+    <div><label>URL del Web App (Apps Script)</label><input id="driveSyncUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec"></div>
     <div class="settings-tools">
-      <button class="settings-tool sky" type="button" onclick="conectarGoogleNotFome?.()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8"/>
-        </svg>
-        Conectar con Google
-      </button>
-      <button class="settings-tool pink" type="button" onclick="guardarGoogleNotFome?.()">
+      <button class="settings-tool pink" type="button" onclick="guardarDriveUrl()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
           <path d="M5 4h11l3 3v13H5z"/><path d="M8 4v6h8V4"/><path d="M8 20v-6h8v6"/>
         </svg>
-        Guardar en Google
+        Guardar URL
       </button>
-      <button class="settings-tool yellow" type="button" onclick="recuperarGoogleNotFome?.()">
+      <button class="settings-tool sky" type="button" onclick="syncAllToDrive(true)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 5v10"/><path d="m8 11 4 4 4-4"/><path d="M5 19h14"/>
+          <path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/>
         </svg>
-        Recuperar de Google
+        Sincronizar ahora
       </button>
     </div>
-    <div id="googleSyncStatus" style="margin-top:10px;font-size:12.5px;color:var(--muted)">
-      Google todavía no está conectado.
+    <div id="syncStatus" style="margin-top:10px;font-size:12.5px;color:var(--muted)">
+      Todavía no configuraste la URL del Web App.
     </div>
   </div>
 
@@ -799,41 +798,44 @@ nav button>span:last-child{display:block;line-height:1.1;white-space:nowrap;over
         <rect x="3" y="4" width="18" height="16" rx="2"/>
         <path d="M7 16v-4M12 16V8M17 16v-7"/>
       </svg>
-      <span>Exportar datos</span>
+      <span>Exportar / Importar datos</span>
     </h3>
-    <div class="settings-note">Exportá tus datos en un archivo compatible con Excel.</div>
+    <div class="settings-note">Exportá tus datos a un archivo Excel/CSV, o importá uno con ese mismo formato para cargar papeles y costos de referencia (no toca tus pedidos).</div>
     <div class="settings-tools">
       <button class="settings-tool sky" type="button" onclick="exportCSV()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 4v11"/><path d="m8 11 4 4 4-4"/><path d="M5 20h14"/>
         </svg>
-        Exportar Excel
+        Exportar Excel/CSV
       </button>
-    </div>
-  </div>
-
-  <div class="settings-panel">
-    <h3>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M5 4h11l3 3v13H5z"/><path d="M8 4v6h8V4"/><path d="M8 20v-6h8v6"/>
-      </svg>
-      <span>Copia de seguridad</span>
-    </h3>
-    <div class="settings-note">Exportá o restaurá todos tus datos para tener una copia de respaldo.</div>
-    <div class="settings-tools">
-      <button class="settings-tool pink" type="button" onclick="exportJSON()">
+      <button class="settings-tool pink" type="button" onclick="document.getElementById('importExcelFile').click()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 4v11"/><path d="m8 11 4 4 4-4"/><path d="M5 20h14"/>
+          <path d="M5 4h11l3 3v13H5z"/><path d="M8 4v6h8V4"/><path d="M12 11v6M9 14h6"/>
         </svg>
-        Exportar copia
+        Importar Excel/CSV
       </button>
-      <button class="settings-tool sky" type="button" onclick="document.getElementById('importFile').click()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 20V9"/><path d="m8 13 4-4 4 4"/><path d="M5 4h14"/>
-        </svg>
-        Importar copia
-      </button>
+      <input type="file" id="importExcelFile" accept=".csv,.xlsx,.xls" style="display:none" onchange="importExcelFileHandler(this)">
     </div>
+    <details style="margin-top:12px;font-size:12.5px;color:var(--muted)">
+      <summary style="cursor:pointer;color:var(--pink-700,#a51f72);font-weight:700">Copia de seguridad completa (incluye pedidos)</summary>
+      <div style="margin-top:10px">
+        El Excel/CSV de arriba no incluye tus pedidos. Para un respaldo con TODO (pedidos, pagos, fotos), usá esta copia:
+        <div class="settings-tools" style="margin-top:8px">
+          <button class="settings-tool sky" type="button" onclick="exportJSON()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 4v11"/><path d="m8 11 4 4 4-4"/><path d="M5 20h14"/>
+            </svg>
+            Exportar copia completa
+          </button>
+          <button class="settings-tool pink" type="button" onclick="document.getElementById('importFile').click()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20V9"/><path d="m8 13 4-4 4 4"/><path d="M5 4h14"/>
+            </svg>
+            Restaurar copia completa
+          </button>
+        </div>
+      </div>
+    </details>
     <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importJSONFile(this)">
   </div>
 </section>
@@ -2032,6 +2034,62 @@ async function resetApp(){if(await askOk('¿Borrar TODO?')){localStorage.removeI
 function exportJSON(){
  const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='NOT_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();
+}
+const COST_LABELS={
+  'tinta $/litro':['costs','inkPrice'],
+  'consumo tinta ml/hoja':['costs','inkMl'],
+  'electricidad $/kwh':['costs','electricity'],
+  'consumo impresora kw':['costs','printerKw'],
+  'costo impresora':['costs','printerCost'],
+  'vida útil en hojas':['costs','printerLife'],
+  'otros $/hoja':['costs','other'],
+  'tiempo prom. impresión por hoja (min)':['costs','avgTimePerSheet'],
+  'valor hora de trabajo':['costs','hour'],
+  'margen predeterminado %':['costs','margin'],
+  'costo hoja a3 metalizado':['prices','metalSheetCost'],
+  'costo acetato 60x80cm':['prices','metalAcetateCost'],
+};
+function importExcelFileHandler(input){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=async function(e){
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const sheet=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(sheet,{header:1,defval:''});
+      const papeles=[]; const costos=[];
+      let leyendoPapeles=false;
+      for(const r of rows){
+        const c0=String(r[0]||'').trim();
+        const c0low=c0.toLowerCase();
+        if(c0low==='papel'&&String(r[1]||'').toLowerCase().includes('costo por hoja')){ leyendoPapeles=true; continue; }
+        if(leyendoPapeles){
+          if(!c0){ leyendoPapeles=false; continue; }
+          const costo=Number(r[1])||0, stock=Number(r[2])||0;
+          if(costo||stock) papeles.push({name:c0,costo,stock});
+          continue;
+        }
+        if(COST_LABELS[c0low]!==undefined && r[1]!==''&&r[1]!==undefined){
+          costos.push({label:c0,target:COST_LABELS[c0low],value:Number(r[1])||0});
+        }
+      }
+      if(!papeles.length && !costos.length){ alert('No se encontró ningún dato reconocible en ese archivo.'); input.value=''; return; }
+      const resumen=`Se encontraron:\n${papeles.length?'• '+papeles.length+' papel(es): '+papeles.map(p=>p.name).join(', ')+'\n':''}${costos.length?'• '+costos.length+' valor(es) de costos':''}\n\nEsto va a actualizar esos papeles y costos. No se tocan tus pedidos. ¿Importar?`;
+      if(!await askOk(resumen)){ input.value=''; return; }
+      papeles.forEach(p=>{
+        let existente=db.papers.find(x=>x.name.trim().toLowerCase()===p.name.toLowerCase());
+        if(existente){ existente.packPrice=p.costo; existente.packQty=1; existente.stock=p.stock; }
+        else { db.papers.push({id:db.nextPaperId++,name:p.name,packPrice:p.costo,packQty:1,stock:p.stock,purchases:[]}); }
+      });
+      costos.forEach(c=>{ db[c.target[0]][c.target[1]]=c.value; });
+      save(); renderAll();
+      alert('✅ Importación completa: '+papeles.length+' papel(es) y '+costos.length+' costo(s) actualizados.');
+    }catch(err){
+      alert('No se pudo leer el archivo. Verificá que sea un .xlsx, .xls o .csv válido.');
+    }
+    input.value='';
+  };
+  reader.readAsArrayBuffer(file);
 }
 function importJSONFile(input){
  const file=input.files[0]; if(!file) return;
