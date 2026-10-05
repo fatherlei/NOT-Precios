@@ -1090,14 +1090,13 @@ function detallePedidoHtml(o){
   }).join('');
   const html=`
     <div class="row" style="align-items:flex-start;margin-bottom:6px">
-      <h3 style="margin:0">Pedido #${String(o.orderNumber||0).padStart(2,'0')}</h3>
+      <h3 style="margin:0">Pedido #${String(o.orderNumber||0).padStart(2,'0')}${o.foto?` <button type="button" aria-label="Ver foto" title="Ver foto" onclick="verFoto(${o.id});event.stopPropagation();" style="width:32px;height:32px;padding:0;border-radius:50%;background:#f3eef2;color:var(--pink-700);box-shadow:none;font-size:16px;line-height:1;vertical-align:middle;cursor:pointer">📷</button>`:''}</h3>
       <button type="button" aria-label="Cerrar" onclick="cerrarFlotante()" style="width:32px;height:32px;padding:0;border-radius:50%;background:#f3eef2;color:#241f2b;box-shadow:none;font-size:15px;line-height:1;flex:0 0 auto">✕</button>
     </div>
     <div class="row line"><span>Cliente</span><b onclick="verCliente(${o.id})" style="text-decoration:underline;text-decoration-style:dotted;cursor:pointer">${esc(o.client||'')}</b></div>
     ${o.phone?`<div class="row line"><span>Teléfono</span><b>${esc(o.phone)}</b></div>`:''}
     <div class="row line"><span>Entrega</span><b>${o.delivery?o.delivery.split('-').reverse().join('/'):'A confirmar'}</b></div>
     <div class="row line"><span>Estado</span><b>${esc(o.status||'Pendiente')}</b></div>
-    ${o.foto?`<div style="margin:10px 0"><img src="${o.foto}" onclick="verFoto(${o.id})" style="max-width:100%;max-height:220px;border-radius:14px;cursor:pointer;border:2px solid var(--pink-100,#ffd9f0)"></div>`:''}
     ${itemsHtml?`<div style="margin-top:10px">${itemsHtml}</div>`:''}
     <div class="row line" style="margin-top:6px"><span>Total</span><b>${money(o.total||0)}</b></div>
     <div class="row line"><span>Cobrado</span><b>${m0(paidTotal(o))}</b></div>
@@ -1128,8 +1127,8 @@ function abrirFlotante(html){
   cerrarFlotante();
   const o=document.createElement('div');
   o.id='floatOverlay';
-  o.style.cssText='position:fixed;inset:0;background:rgba(36,31,43,0);backdrop-filter:blur(0px);-webkit-backdrop-filter:blur(0px);z-index:250;display:flex;align-items:flex-end;justify-content:center;transition:background .25s ease,backdrop-filter .25s ease,-webkit-backdrop-filter .25s ease';
-  o.innerHTML=`<div class="ui-modal-card" style="background:#fff;border-radius:26px 26px 0 0;padding:18px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;box-shadow:0 -8px 24px rgba(36,31,43,.18);opacity:0;transform:translateY(28px);transition:opacity .25s ease,transform .32s cubic-bezier(.34,1.2,.64,1)">${html}</div>`;
+  o.style.cssText='position:fixed;inset:0;background:rgba(36,31,43,0);backdrop-filter:blur(0px);-webkit-backdrop-filter:blur(0px);z-index:250;display:flex;align-items:center;justify-content:center;padding:72px 12px 96px;box-sizing:border-box;transition:background .25s ease,backdrop-filter .25s ease,-webkit-backdrop-filter .25s ease';
+  o.innerHTML=`<div class="ui-modal-card" style="background:#fff;border-radius:26px;padding:18px;width:100%;max-width:480px;max-height:calc(100dvh - 168px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-shadow:0 12px 36px rgba(36,31,43,.22);opacity:0;transform:translateY(20px) scale(.98);transition:opacity .25s ease,transform .32s cubic-bezier(.34,1.2,.64,1)">${html}</div>`;
   document.body.appendChild(o);
   const card=o.querySelector('.ui-modal-card');
   requestAnimationFrame(()=>{
