@@ -1052,6 +1052,7 @@ function parseDateParts(v){
   if(m) return ok(+m[3],+m[2],+m[1]);
   return null;
 }
+function fmtD(v){const i=parseRegistered(v);return i?i.split('-').reverse().join('/'):String(v||'');}
 function parseRegistered(s){
   const p=parseDateParts(s);
   return p?`${p.y}-${String(p.m).padStart(2,'0')}-${String(p.d).padStart(2,'0')}`:null;
@@ -1130,7 +1131,7 @@ function detallePedidoHtml(o){
     </div>
     <div class="row line"><span>Cliente</span><b onclick="verCliente(${o.id})" style="text-decoration:underline;text-decoration-style:dotted;cursor:pointer">${esc(o.client||'')}</b></div>
     ${o.phone?`<div class="row line"><span>Teléfono</span><b>${esc(o.phone)}</b></div>`:''}
-    <div class="row line"><span>Entrega</span><b>${o.delivery?o.delivery.split('-').reverse().join('/'):'A confirmar'}</b></div>
+    <div class="row line"><span>Entrega</span><b>${o.delivery?fmtD(o.delivery):'A confirmar'}</b></div>
     <div class="row line"><span>Estado</span><b>${esc(o.status||'Pendiente')}</b></div>
     ${itemsHtml?`<div style="margin-top:10px">${itemsHtml}</div>`:''}
     <div class="row line" style="margin-top:6px"><span>Total</span><b>${money(o.total||0)}</b></div>
@@ -1809,7 +1810,7 @@ function textOrder(o){
   const sena=Math.min(Math.max(0,Number(o.sena)||0),total);
   const resta=Math.max(0,total-sena);
   const senaLine=sena>0?`Seña: *${money(sena)}*\n`:'';
-  return `✨ *NOT - Presupuesto*\n\n*Pedido:* #${String(o.orderNumber||0).padStart(2,'0')}\n*Cliente:* ${o.client||''}\n*Entrega:* ${o.delivery?o.delivery.split('-').reverse().join('/'):'A confirmar'}\n\n${itemsText}\n\n🧾 *TOTAL:* *${money(total)}*\n${senaLine}Resta: *${money(resta)}*\nGracias por elegir NOT 💖`;
+  return `✨ *NOT - Presupuesto*\n\n*Pedido:* #${String(o.orderNumber||0).padStart(2,'0')}\n*Cliente:* ${o.client||''}\n*Entrega:* ${o.delivery?fmtD(o.delivery):'A confirmar'}\n\n${itemsText}\n\n🧾 *TOTAL:* *${money(total)}*\n${senaLine}Resta: *${money(resta)}*\nGracias por elegir NOT 💖`;
 }
 
 async function compartirCatalogo(){
@@ -1911,7 +1912,7 @@ function orderCardHtml(o){
         <b style="white-space:nowrap">${m0(o.total||0)}</b>
       </div>
       <div class="row" style="gap:8px;margin-top:1px;flex-wrap:wrap">
-        <small style="white-space:nowrap">📅 ${o.delivery?o.delivery.split('-').reverse().join('/'):'A confirmar'}</small>
+        <small style="white-space:nowrap">📅 ${o.delivery?fmtD(o.delivery):'A confirmar'}</small>
         <small>Cobrado ${m0(paidTotal(o))} · Saldo ${m0(saldoDe(o))}</small>
       </div>
       <div class="actions" style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:nowrap" onclick="event.stopPropagation()">
@@ -1986,7 +1987,7 @@ function renderInicio(){
  $('inicioStock').innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">${db.papers.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;background:${(p.stock||0)<STOCK_BAJO?'#ffe0ea':'#dff6fa'};border-radius:14px;padding:6px 10px;font-size:12px"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}</span><b style="white-space:nowrap;font-size:13px">${p.stock||0} h</b></div>`).join('')}</div>`;
  
  const arr=[...db.orders].sort((a,b)=>{const ea=a.status==='Entregado',eb=b.status==='Entregado';if(ea!==eb)return ea?1:-1;return String(a.delivery||'9999').localeCompare(String(b.delivery||'9999'))||(a.orderNumber||0)-(b.orderNumber||0);});
- $('inicioPedidos').innerHTML=arr.length?arr.map(o=>`<div class="order${o.status==='Entregado'?' order-entregado':''}" onclick="loadOrder(${o.id})"><div class="row"><div><b>#${String(o.orderNumber||0).padStart(2,'0')} · ${esc(o.client)}</b><br><small>📅 ${o.delivery.split('-').reverse().join('/')} · 📌 ${o.status}</small></div><b>${money(o.total)}</b></div></div>`).join(''):'<div class="empty">Todavía no hay pedidos.</div>';
+ $('inicioPedidos').innerHTML=arr.length?arr.map(o=>`<div class="order${o.status==='Entregado'?' order-entregado':''}" onclick="loadOrder(${o.id})"><div class="row"><div><b>#${String(o.orderNumber||0).padStart(2,'0')} · ${esc(o.client)}</b><br><small>📅 ${fmtD(o.delivery)} · 📌 ${o.status}</small></div><b>${money(o.total)}</b></div></div>`).join(''):'<div class="empty">Todavía no hay pedidos.</div>';
  renderPrioridades();
  renderMeta();
 }
@@ -2003,7 +2004,7 @@ function renderPrioridades(){
  const porCobrar=db.orders.filter(o=>o.status!=='Cancelado').reduce((a,o)=>a+saldoDe(o),0);
  const porCobrarHoy=deHoy.reduce((a,o)=>a+saldoDe(o),0);
  const bajo=db.papers.filter(p=>(p.stock||0)<STOCK_BAJO);
- const fila=o=>`<div class="row" style="margin:3px 0;cursor:pointer" onclick="loadOrder(${o.id})"><span>#${String(o.orderNumber||0).padStart(2,'0')} · ${esc(o.client||'')}</span><small>${o.delivery.split('-').reverse().join('/')}</small></div>`;
+ const fila=o=>`<div class="row" style="margin:3px 0;cursor:pointer" onclick="loadOrder(${o.id})"><span>#${String(o.orderNumber||0).padStart(2,'0')} · ${esc(o.client||'')}</span><small>${fmtD(o.delivery)}</small></div>`;
  const porFecha=(a,b)=>String(a.delivery).localeCompare(String(b.delivery))||(a.orderNumber||0)-(b.orderNumber||0);
  const bloque=(t,arr,cnt)=>arr.length?`<div style="margin-top:10px"><b>${t}${cnt===false?'':' ('+arr.length+')'}</b>${[...arr].sort(porFecha).map(fila).join('')}</div>`:'';
  const badgeTxt = deHoy.length>10?'10+':deHoy.length>5?'5+':String(deHoy.length);
