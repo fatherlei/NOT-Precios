@@ -1028,6 +1028,18 @@ function parseRegistered(s){
   }
   const raw=String(s).trim();
   if(!raw) return null;
+  // Excel/Google Sheets puede entregar una fecha como número serial, incluso
+  // cuando viene de CSV (por ejemplo: 46268.874444444446).
+  // La parte decimal representa la hora; para Balance usamos solamente el día.
+  if(/^\d+(?:\.\d+)?$/.test(raw)) {
+    const n=Number(raw);
+    if(Number.isFinite(n) && n>=20000 && n<=100000 && typeof XLSX!=='undefined' && XLSX.SSF?.parse_date_code){
+      const dc=XLSX.SSF.parse_date_code(n);
+      if(dc && dc.y && dc.m && dc.d){
+        return `${dc.y}-${String(dc.m).padStart(2,'0')}-${String(dc.d).padStart(2,'0')}`;
+      }
+    }
+  }
   // ISO / formato de Excel/Google Sheets: YYYY-MM-DD, YYYY/MM/DD o YYYY.MM.DD
   let m=raw.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})(?:[T ]|$)/);
   if(m) return `${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;
@@ -2102,6 +2114,15 @@ function importExcelFileHandler(input){
           if(dc && dc.y) return {y:dc.y,m:dc.m,d:dc.d};
         }
         const s=String(v??'').trim(); if(!s) return null;
+        // En CSV, Excel puede serializar la fecha como texto numérico, por ejemplo
+        // "46268.874444444446". Convertimos el serial y descartamos solamente la hora.
+        if(/^\d+(?:\.\d+)?$/.test(s)) {
+          const n=Number(s);
+          if(Number.isFinite(n) && n>=20000 && n<=100000 && typeof XLSX!=='undefined' && XLSX.SSF?.parse_date_code){
+            const dc=XLSX.SSF.parse_date_code(n);
+            if(dc && dc.y && dc.m && dc.d) return {y:dc.y,m:dc.m,d:dc.d};
+          }
+        }
         let m=s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})(?:[T ]|$)/);
         if(m) return {y:+m[1],m:+m[2],d:+m[3]};
         m=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})(?:[ T]|$)/);
