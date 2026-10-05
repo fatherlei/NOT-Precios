@@ -940,7 +940,7 @@ if (typeof db.lastOrderNumber === 'undefined') {
         if(!o.orderNumber) o.orderNumber = db.lastOrderNumber;
     });
 }
-db.orders.forEach(o=>{ if(!o.registeredISO) o.registeredISO = parseRegistered(o.registered) || new Date().toISOString().slice(0,10); });
+db.orders.forEach(o=>{ if(!o.registeredISO) { const d=parseRegistered(o.registered); if(d) o.registeredISO=d; } });
 
 let editId=null, selected=null;
 let currentCart=[]; 
@@ -1022,10 +1022,19 @@ function costBreakdown(paper, sheets){
   return {parts, total};
 }
 function parseRegistered(s){
-  if(!s) return null;
-  const parts=String(s).split('/');
-  if(parts.length!==3) return null;
-  return `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+  if(s===null || s===undefined || s==='') return null;
+  if(s instanceof Date && !isNaN(s)) {
+    return `${s.getFullYear()}-${String(s.getMonth()+1).padStart(2,'0')}-${String(s.getDate()).padStart(2,'0')}`;
+  }
+  const raw=String(s).trim();
+  if(!raw) return null;
+  // ISO / formato de Excel/Google Sheets: YYYY-MM-DD, YYYY/MM/DD o YYYY.MM.DD
+  let m=raw.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})(?:[T ]|$)/);
+  if(m) return `${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;
+  // Formato argentino: DD/MM/YYYY, DD-MM-YYYY o DD.MM.YYYY
+  m=raw.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})(?:[ T]|$)/);
+  if(m) return `${m[3]}-${String(m[2]).padStart(2,'0')}-${String(m[1]).padStart(2,'0')}`;
+  return null;
 }
 
 /* --- PAGOS: o.payments es la fuente de verdad; o.sena y o.paid se derivan --- */
@@ -1569,7 +1578,7 @@ function renderCarrito(){
   }
   const senaInput=$('pSena');
   const sena=Math.min(Math.max(0,Number(senaInput?.value)||0),gt);
-  if(senaInput && Number(senaInput.value||0)>gt) senaInput.value=gt||'';
+  // No modificar el campo mientras la persona escribe. El límite de la seña se aplica al guardar.
   const resta=Math.max(0,gt-sena);
   const saldoBox=$('pedidoSaldoResumen');
   if(saldoBox){
@@ -2105,7 +2114,7 @@ function importExcelFileHandler(input){
       };
       const registeredDate=v=>{
         const p=dateParts(v); if(!p) return String(v??'').trim();
-        return `${p.d}/${p.m}/${p.y}`;
+        return `${String(p.d).padStart(2,'0')}/${String(p.m).padStart(2,'0')}/${p.y}`;
       };
 
       for(const r of allRows){
@@ -2176,7 +2185,7 @@ function importExcelFileHandler(input){
       importedOrders.forEach(o=>{
         if(!o.total) o.total=o.items.reduce((a,it)=>a+(Number(it.quote?.total)||0),0);
         if(!o.cost) o.cost=o.items.reduce((a,it)=>a+(Number(it.quote?.cost)||0),0);
-        o.registeredISO=parseRegistered(o.registered)||o.registered||'';
+        o.registeredISO=parseRegistered(o.registered)||'';
         if(!o.items.length) o.article='Varios';
       });
 
