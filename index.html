@@ -519,12 +519,12 @@ nav button>span:last-child{display:block;line-height:1.1;white-space:nowrap;over
     <div class="form"><div><label>Nombre del Cliente *</label><input id="pNombre"></div><div><label>Teléfono</label><input id="pTelefono"></div><div><label>Fecha de entrega *</label><input id="pEntrega" type="date"></div></div>
     <h3>✨ Configurar artículo</h3><div id="artChoices"></div><div id="builder"></div>
     <div class="result"><h3 style="margin-top:0">🧾 Cotización de este artículo</h3><div id="quote"></div><div class="row"><b>Subtotal</b><span id="total" class="big">$0</span></div><label style="margin-top:12px">📝 Detalle / personalización de este artículo</label><textarea id="itemDetalle" placeholder="Ej: nombre 'Sofi', color dorado, motivo unicornio..." style="min-height:60px"></textarea><button class="yellow" style="width:100%;margin-top:10px;font-size:16px" onclick="addToCart()">➕ Añadir artículo al pedido</button></div>
-    <div class="card"><h3 style="margin-top:0">📝 2. Detalles generales del pedido</h3><div class="form"><div><label>Estado del pedido</label><select id="pEstado"><option value="Pendiente">Pendiente</option><option value="Diseñado">Diseñado</option><option value="Entregado">Entregado</option></select></div><div><label>Seña / anticipo (primer pago; luego se cobra desde Pedidos)</label><input id="pSena" type="number" min="0" step="1" placeholder="$0"></div><div><label>Temática</label><input id="pTematica" placeholder="Ej: Bautismo, Anime..."></div><div><label>Medida general (opcional)</label><input id="pMedida"></div><div><label>Color general (opcional)</label><input id="pColor"></div></div><label>Notas generales (no específicas de un artículo)</label><textarea id="pDetalles"></textarea>
+    <div class="card"><h3 style="margin-top:0">📝 2. Detalles generales del pedido</h3><div class="form"><div><label>Estado del pedido</label><select id="pEstado"><option value="Pendiente">Pendiente</option><option value="Diseñado">Diseñado</option><option value="Entregado">Entregado</option></select></div><div><label>Temática</label><input id="pTematica" placeholder="Ej: Bautismo, Anime..."></div></div><label>Notas generales (no específicas de un artículo)</label><textarea id="pDetalles"></textarea>
       <label style="margin-top:12px">📸 Foto de referencia (opcional)</label>
       <input id="pFotoInput" type="file" accept="image/*" onchange="onFotoChange(event)">
       <div id="pFotoPreview"></div>
     </div>
-    <div class="card" style="border-color:var(--pink-600); background:var(--pink-50); margin-top:15px"><h3 style="margin-top:0; color:var(--pink-700)">🛒 Carrito del pedido</h3><div id="carritoLista"></div><div class="row" style="margin-top:10px; border-top:2px solid var(--pink-600); padding-top:10px"><b>GRAN TOTAL</b><span id="granTotal" class="big" style="color:var(--pink-700)">$0</span></div></div>
+    <div class="card" style="border-color:var(--pink-600); background:var(--pink-50); margin-top:15px"><h3 style="margin-top:0; color:var(--pink-700)">🛒 Carrito del pedido</h3><div id="carritoLista"></div><div class="row" style="margin-top:10px; border-top:2px solid var(--pink-600); padding-top:10px"><b>GRAN TOTAL</b><span id="granTotal" class="big" style="color:var(--pink-700)">$0</span></div><div id="pedidoCostoResumen"></div><div id="pedidoSaldoResumen"></div><div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(211,42,139,.18)"><label style="font-weight:700">💰 Seña / anticipo</label><input id="pSena" type="number" min="0" step="1" placeholder="$0" inputmode="decimal" oninput="renderCarrito()"></div></div>
     <div class="actions order-main-actions" style="margin-top:15px">
       <button class="save-order-btn" onclick="guardarPedido()" type="button" aria-label="Guardar pedido" title="Guardar pedido">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -971,7 +971,7 @@ function nuevoPedido(){
     topper={type:'A',mode:'6',qty:6,sheets:1,style:'simple',premium:false,premiumColor:'dorado',layer:false,acetate:false,paperId:(db.papers[0]?db.papers[0].id:null)};
     metal={type:'names',size:'10',custom:10};
     freeArt={name:'',price:0,pricePerSheet:0,sheets:1,paperId:(__glossy?.id ?? (db.papers[0]?db.papers[0].id:null))};
-    ['pNombre','pTelefono','pEntrega','pTematica','pMedida','pColor','pDetalles'].forEach(x=>$(x).value='');
+    ['pNombre','pTelefono','pEntrega','pTematica','pDetalles'].forEach(x=>$(x).value='');
     $('pEstado').value = 'Pendiente';
     if($('pFotoInput')) $('pFotoInput').value='';
     renderFotoPreview();
@@ -1563,26 +1563,20 @@ function renderCarrito(){
     </div>`;
   }).join('') || '<div class="empty">Carrito vacío.</div>';
   $('granTotal').textContent = money(gt);
-  let costoBox = $('pedidoCostoResumen');
-  if(!costoBox){
-    costoBox = document.createElement('div');
-    costoBox.id = 'pedidoCostoResumen';
+  const costoBox = $('pedidoCostoResumen');
+  if(costoBox){
     costoBox.style.cssText = 'margin-top:6px;font-size:12px;color:var(--muted)';
-    $('granTotal').closest('.row').after(costoBox);
+    costoBox.innerHTML = currentCart.length ? `<div class="row" style="margin:0"><span>💸 Costo real (todas las hojas)</span><b>${money(gc)}</b></div>` : '';
   }
-  costoBox.innerHTML = currentCart.length ? `<div class="row" style="margin:0"><span>💸 Costo real (todas las hojas)</span><b>${money(gc)}</b></div>` : '';
-  const __ed=editId?db.orders.find(o=>Number(o.id)===Number(editId)):null;
-  if($('pSena')) $('pSena').readOnly=!!__ed;
-  const sena = Math.min(__ed?paidTotal(__ed):Math.max(0, Number($('pSena')?.value) || 0), gt);
-  const resta = Math.max(0, gt - sena);
-  let saldoBox = $('pedidoSaldoResumen');
-  if(!saldoBox){
-    saldoBox = document.createElement('div');
-    saldoBox.id = 'pedidoSaldoResumen';
-    saldoBox.style.cssText = 'margin-top:10px;padding-top:10px;border-top:1px solid rgba(211,42,139,.18);font-size:13px';
-    $('granTotal').closest('.card').appendChild(saldoBox);
+  const senaInput=$('pSena');
+  const sena=Math.min(Math.max(0,Number(senaInput?.value)||0),gt);
+  if(senaInput && Number(senaInput.value||0)>gt) senaInput.value=gt||'';
+  const resta=Math.max(0,gt-sena);
+  const saldoBox=$('pedidoSaldoResumen');
+  if(saldoBox){
+    saldoBox.style.cssText='margin-top:10px;padding-top:10px;border-top:1px solid rgba(211,42,139,.18);font-size:13px';
+    saldoBox.innerHTML=`<div class="row" style="margin:4px 0"><span>💰 Seña</span><b>${money(sena)}</b></div><div class="row" style="margin:4px 0"><span>Saldo pendiente</span><b style="color:var(--pink-700)">${money(resta)}</b></div>`;
   }
-  saldoBox.innerHTML = `<div class="row" style="margin:4px 0"><span>Seña</span><b>${money(sena)}</b></div><div class="row" style="margin:4px 0"><span>Resta</span><b style="color:var(--pink-700)">${money(resta)}</b></div>`;
 }
 
 function loadOrder(id){
@@ -1593,10 +1587,9 @@ function loadOrder(id){
   $('pTelefono').value=o.phone||'';
   $('pEntrega').value=o.delivery||'';
   $('pEstado').value=o.status||'Pendiente';
-  $('pSena').value=Number(o.sena||0)||'';
+  const senaInicial=(o.payments||[]).find(p=>String(p.method||'').toLowerCase()==='seña');
+  $('pSena').value=Number(senaInicial?senaInicial.amount:o.sena||0)||'';
   $('pTematica').value=o.tematica||'';
-  $('pMedida').value=o.measure||'';
-  $('pColor').value=o.color||'';
   $('pDetalles').value=o.details||'';
   currentCart=o.items?clone(o.items):[];
   currentFoto=o.foto||null;
@@ -1678,20 +1671,36 @@ async function guardarPedido(){
   if(currentCart.length===0){alert('Agregá algo al carrito.');return;}
   const gt=currentCart.reduce((s,i)=>s+(Number(i.quote?.total)||0),0);
   const gc=currentCart.reduce((s,i)=>s+(Number(i.quote?.cost)||0),0);
+  const prev=editId?db.orders.find(o=>Number(o.id)===Number(editId)):null;
   const data={
     client:$('pNombre').value.trim(),phone:$('pTelefono').value.trim(),delivery:$('pEntrega').value,
     status:$('pEstado').value,paid:(db.orders.find(o=>Number(o.id)===Number(editId))?.paid||false),
-    sena:Math.max(0,Number($('pSena').value)||0),
-    tematica:$('pTematica').value.trim(),measure:$('pMedida').value.trim(),
-    color:$('pColor').value.trim(),details:$('pDetalles').value.trim(),sena:Math.max(0,Number($('pSena').value)||0),items:clone(currentCart),
+    sena:Math.max(0,Math.min(Number($('pSena').value)||0,gt)),
+    tematica:$('pTematica').value.trim(),
+    measure:prev?prev.measure||'':'',
+    color:prev?prev.color||'':'',
+    details:$('pDetalles').value.trim(),items:clone(currentCart),
     total:gt,cost:gc,article:`Varios (${currentCart.length})`,foto:currentFoto||null
   };
-  const prev=editId?db.orders.find(o=>Number(o.id)===Number(editId)):null;
   const falta=stockFaltante(data.items,prev?prev.items:[]);
   if(falta.length&&!await askOk('⚠️ Stock insuficiente:\n'+falta.join('\n')+'\n\n¿Guardar igual?'))return;
-  const pagado=prev?paidTotal(prev):data.sena;
+  let pagado=data.sena;
+  if(prev){
+    const payments=Array.isArray(prev.payments)?clone(prev.payments):[];
+    const idx=payments.findIndex(p=>String(p.method||'').toLowerCase()==='seña');
+    const nuevaSena=data.sena;
+    if(idx>=0){
+      if(nuevaSena>0) payments[idx].amount=nuevaSena;
+      else payments.splice(idx,1);
+    }else if(nuevaSena>0){
+      payments.unshift({date:new Date().toISOString().slice(0,10),amount:nuevaSena,method:'Seña'});
+    }
+    data.payments=payments;
+    pagado=payments.reduce((a,p)=>a+(Number(p.amount)||0),0);
+  }else{
+    data.payments=data.sena>0?[{date:new Date().toISOString().slice(0,10),amount:data.sena,method:'Seña'}]:[];
+  }
   if(data.status==='Entregado'&&gt-pagado>0&&!await askOk('Este pedido tiene un saldo de '+money(gt-pagado)+'. ¿Marcarlo como Entregado igual?'))return;
-  if(editId){delete data.sena;delete data.paid;}else{data.payments=data.sena>0?[{date:new Date().toISOString().slice(0,10),amount:data.sena,method:'Seña'}]:[];}
   let savedOrder;
   if(editId){
     const existing=db.orders.find(o=>Number(o.id)===Number(editId));
@@ -1836,8 +1845,8 @@ function compartirActual(){
   if(currentCart.length===0){alert('Agregá un artículo al pedido primero.');return;}
   const temp={
     orderNumber:0,client:$('pNombre').value.trim(),phone:$('pTelefono').value.trim(),
-    delivery:$('pEntrega').value,tematica:$('pTematica').value.trim(),measure:$('pMedida').value.trim(),
-    color:$('pColor').value.trim(),details:$('pDetalles').value.trim(),items:clone(currentCart),
+    delivery:$('pEntrega').value,tematica:$('pTematica').value.trim(),
+    details:$('pDetalles').value.trim(),items:clone(currentCart),
     sena:Math.max(0,Number($('pSena').value)||0),
     total:currentCart.reduce((s,i)=>s+(Number(i.quote?.total)||0),0)
   };
@@ -2054,30 +2063,69 @@ function importExcelFileHandler(input){
   const reader=new FileReader();
   reader.onload=async function(e){
     try{
-      const wb=XLSX.read(e.target.result,{type:'array'});
-      const sheet=wb.Sheets[wb.SheetNames[0]];
-      const rows=XLSX.utils.sheet_to_json(sheet,{header:1,defval:''});
+      // IMPORTACIÓN ROBUSTA: acepta CSV, XLS/XLSX y libros de Google Sheets
+      // descargados como Excel. Se leen TODAS las hojas del libro.
+      const wb=XLSX.read(e.target.result,{type:'array',cellDates:true,cellNF:true,cellText:false});
+      const allRows=[];
+      wb.SheetNames.forEach(sheetName=>{
+        const sheet=wb.Sheets[sheetName];
+        const rows=XLSX.utils.sheet_to_json(sheet,{header:1,defval:'',raw:true});
+        rows.forEach(r=>allRows.push(r));
+      });
+
       const papeles=[]; const costos=[]; const itemRows=[]; const resumenRows=[];
       let leyendoPapeles=false, leyendoArticulos=false, leyendoResumen=false;
+
       const num=v=>{
         if(typeof v==='number') return v;
         let x=String(v??'').trim().replace(/\s/g,'');
         if(!x) return 0;
-        // Accept both 1234.56 and 1234,56 formats.
         if(x.includes(',') && x.includes('.')) x=x.replace(/\./g,'').replace(',','.');
         else if(x.includes(',')) x=x.replace(',','.');
         return Number(x)||0;
       };
       const cleanOrderId=v=>String(v??'').trim().replace(/^#/,'');
-      for(const r of rows){
-        const c0=String(r[0]||'').trim();
+
+      // Convierte fechas de Excel/Google Sheets/CSV sin cambiar el día por zona horaria.
+      const dateParts=v=>{
+        if(v instanceof Date && !isNaN(v)) return {y:v.getFullYear(),m:v.getMonth()+1,d:v.getDate()};
+        if(typeof v==='number' && isFinite(v)){
+          const dc=XLSX.SSF.parse_date_code(v);
+          if(dc && dc.y) return {y:dc.y,m:dc.m,d:dc.d};
+        }
+        const s=String(v??'').trim(); if(!s) return null;
+        let m=s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})(?:[T ]|$)/);
+        if(m) return {y:+m[1],m:+m[2],d:+m[3]};
+        m=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})(?:[ T]|$)/);
+        if(m) return {y:+m[3],m:+m[2],d:+m[1]};
+        return null;
+      };
+      const deliveryDate=v=>{
+        const p=dateParts(v); if(!p) return String(v??'').trim();
+        return `${p.y}-${String(p.m).padStart(2,'0')}-${String(p.d).padStart(2,'0')}`;
+      };
+      const registeredDate=v=>{
+        const p=dateParts(v); if(!p) return String(v??'').trim();
+        return `${p.d}/${p.m}/${p.y}`;
+      };
+
+      for(const r of allRows){
+        const c0=String(r[0]??'').trim();
         const c0low=c0.toLowerCase();
-        if(c0low==='papel'&&String(r[1]||'').toLowerCase().includes('costo por hoja')){ leyendoPapeles=true; leyendoArticulos=false; leyendoResumen=false; continue; }
-        if(c0low==='artículos vendidos'||c0low==='articulos vendidos'){ leyendoPapeles=false; leyendoArticulos=true; leyendoResumen=false; continue; }
-        if(c0low==='resumen de pedidos'){ leyendoPapeles=false; leyendoArticulos=false; leyendoResumen=true; continue; }
+        const rowLow=r.map(v=>String(v??'').trim().toLowerCase());
+
+        if(c0low==='papel' && rowLow[1]?.includes('costo por hoja')){
+          leyendoPapeles=true; leyendoArticulos=false; leyendoResumen=false; continue;
+        }
+        if(c0low==='artículos vendidos'||c0low==='articulos vendidos'){
+          leyendoPapeles=false; leyendoArticulos=true; leyendoResumen=false; continue;
+        }
+        if(c0low==='resumen de pedidos'){
+          leyendoPapeles=false; leyendoArticulos=false; leyendoResumen=true; continue;
+        }
+
         if(leyendoPapeles){
-          if(!c0){ leyendoPapeles=false; continue; }
-          if(c0low==='tinta $/litro') leyendoPapeles=false;
+          if(!c0 || c0low.startsWith('tinta $/litro')){ leyendoPapeles=false; }
           else { const costo=num(r[1]), stock=num(r[2]); if(costo||stock) papeles.push({name:c0,costo,stock}); continue; }
         }
         if(leyendoArticulos){
@@ -2095,44 +2143,36 @@ function importExcelFileHandler(input){
         }
       }
 
-      // Rebuild orders from the two order sections of the exported CSV.
       const orderMap=new Map();
       resumenRows.forEach(r=>{
         const oid=cleanOrderId(r[0]); if(!oid) return;
         const orderNumber=parseInt(oid,10)||0;
         orderMap.set(oid,{
-          id:Date.now()+orderMap.size,
-          orderNumber,
-          client:String(r[2]||'').trim(),
-          phone:'',
-          delivery:String(r[1]||'').trim(),
-          status:String(r[3]||'Pendiente').trim()||'Pendiente',
-          paid:false,
-          sena:0,
-          tematica:'',measure:'',color:'',details:'',foto:null,
-          items:[],
-          total:num(r[4]),
-          cost:num(r[5]),
-          article:'Varios',
-          payments:[],
-          registered:'',
-          registeredISO:''
+          id:Date.now()+orderMap.size, orderNumber,
+          client:String(r[2]??'').trim(), phone:'',
+          delivery:deliveryDate(r[1]), status:String(r[3]??'Pendiente').trim()||'Pendiente',
+          paid:false,sena:0,tematica:'',measure:'',color:'',details:'',foto:null,
+          items:[],total:num(r[4]),cost:num(r[5]),article:'Varios',payments:[],registered:'',registeredISO:''
         });
       });
+
       itemRows.forEach(r=>{
         const oid=cleanOrderId(r[2]); if(!oid) return;
         let o=orderMap.get(oid);
         if(!o){
           const orderNumber=parseInt(oid,10)||0;
-          o={id:Date.now()+orderMap.size,orderNumber,client:String(r[1]||'').trim(),phone:'',delivery:String(r[3]||'').trim(),status:String(r[5]||'Pendiente').trim()||'Pendiente',paid:false,sena:0,tematica:'',measure:'',color:'',details:'',foto:null,items:[],total:0,cost:0,article:'Varios',payments:[],registered:String(r[4]||'').trim(),registeredISO:''};
+          o={id:Date.now()+orderMap.size,orderNumber,client:String(r[1]??'').trim(),phone:'',
+             delivery:deliveryDate(r[3]),status:String(r[5]??'Pendiente').trim()||'Pendiente',paid:false,sena:0,
+             tematica:'',measure:'',color:'',details:'',foto:null,items:[],total:0,cost:0,article:'Varios',payments:[],registered:registeredDate(r[4]),registeredISO:''};
           orderMap.set(oid,o);
         }
-        if(!o.registered) o.registered=String(r[4]||'').trim();
-        if(!o.delivery) o.delivery=String(r[3]||'').trim();
-        if(!o.client) o.client=String(r[1]||'').trim();
+        if(!o.registered) o.registered=registeredDate(r[4]);
+        if(!o.delivery) o.delivery=deliveryDate(r[3]);
+        if(!o.client) o.client=String(r[1]??'').trim();
         const price=num(r[7]), cost=num(r[8]), quantity=num(r[6])||1;
-        o.items.push({name:String(r[0]||'').trim(),detail:String(r[11]||'').trim(),quote:{quantity,total:price,cost,materialSheets:0}});
+        o.items.push({name:String(r[0]??'').trim(),detail:String(r[11]??'').trim(),quote:{quantity,total:price,cost,materialSheets:0}});
       });
+
       const importedOrders=[...orderMap.values()].sort((a,b)=>(a.orderNumber||0)-(b.orderNumber||0));
       importedOrders.forEach(o=>{
         if(!o.total) o.total=o.items.reduce((a,it)=>a+(Number(it.quote?.total)||0),0);
@@ -2141,8 +2181,10 @@ function importExcelFileHandler(input){
         if(!o.items.length) o.article='Varios';
       });
 
-      if(!papeles.length&&!costos.length&&!importedOrders.length){ alert('No se encontró ningún dato reconocible en ese archivo.'); input.value=''; return; }
-      const resumen=`Se encontraron:\n${papeles.length?'• '+papeles.length+' papel(es)\n':''}${costos.length?'• '+costos.length+' costo(s)\n':''}${importedOrders.length?'• '+importedOrders.length+' pedido(s), con '+importedOrders.reduce((a,o)=>a+o.items.length,0)+' artículo(s)\n':''}\nLa importación actualizará papeles y costos, y reemplazará el historial de pedidos por los pedidos del archivo. ¿Importar?`;
+      if(!papeles.length&&!costos.length&&!importedOrders.length){
+        alert('No se encontró ningún dato reconocible en ese archivo.'); input.value=''; return;
+      }
+      const resumen=`Se encontraron:\n${papeles.length?'• '+papeles.length+' papel(es)\n':''}${costos.length?'• '+costos.length+' costo(s)\n':''}${importedOrders.length?'• '+importedOrders.length+' pedido(s), con '+importedOrders.reduce((a,o)=>a+o.items.length,0)+' artículo(s)\n':''}\nSe importarán las fechas conservando exactamente el día de Google Sheets/Excel.\n\nLa importación actualizará papeles y costos, y reemplazará el historial de pedidos por los pedidos del archivo. ¿Importar?`;
       if(!await askOk(resumen)){ input.value=''; return; }
 
       papeles.forEach(p=>{
@@ -2165,6 +2207,7 @@ function importExcelFileHandler(input){
   };
   reader.readAsArrayBuffer(file);
 }
+
 function importJSONFile(input){
  const file=input.files[0]; if(!file) return;
  const reader=new FileReader();
