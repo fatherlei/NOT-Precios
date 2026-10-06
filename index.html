@@ -1423,7 +1423,7 @@ function renderBuilder(){
   $('builder').innerHTML=`
   <div class="card compact-builder">
     <h3 style="margin-top:0">📄 Papel</h3>
-    <div class="option-row paper-row">${db.papers.map(p=>`<div class="choice compact-choice ${topper.paperId===p.id?'active':''}" onclick="setTop('paperId',${p.id})"><b>${esc(p.name)}</b></div>`).join('')}</div>
+    <select id="topPaperSel" onchange="setTop('paperId',db.papers[+this.value].id)">${db.papers.map((p,i)=>`<option value="${i}" ${topper.paperId===p.id?'selected':''}>${esc(p.name)} · ${Math.round((p.stock||0)*100)/100} h</option>`).join('')}</select>
 
     <h3>🪄 Diseño</h3>
     <div class="option-row design-row">
