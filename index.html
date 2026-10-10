@@ -1810,7 +1810,7 @@ function textOrder(o){
   const sena=Math.min(Math.max(0,Number(o.sena)||0),total);
   const resta=Math.max(0,total-sena);
   const senaLine=sena>0?`Seña: *${money(sena)}*\n`:'';
-  return `✨ *NOT - Presupuesto*\n\n*Pedido:* #${String(o.orderNumber||0).padStart(2,'0')}\n*Cliente:* ${o.client||''}\n*Entrega:* ${o.delivery?fmtD(o.delivery):'A confirmar'}\n\n${itemsText}\n\n🧾 *TOTAL:* *${money(total)}*\n${senaLine}Resta: *${money(resta)}*\nGracias por elegir NOT 💖`;
+  return `✨ *NOT - Presupuesto*\n\n*Pedido:* #${String(o.orderNumber||0).padStart(2,'0')}\n*Cliente:* ${o.client||''}\n*Entrega:* ${o.delivery?fmtD(o.delivery):'A confirmar'}\n\n${itemsText}\n\n🧾 *TOTAL:* *${money(total)}*\n${senaLine}Resta: *${money(resta)}*\nGracias por elegir @notfome.i 💖`;
 }
 
 async function compartirCatalogo(){
